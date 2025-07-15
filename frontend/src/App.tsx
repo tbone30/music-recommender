@@ -1,6 +1,6 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from 'react-query';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 
 // Context Providers
@@ -45,7 +45,7 @@ const queryClient = new QueryClient({
  * Sets up routing, global providers, and application structure.
  * Handles authentication state and provides consistent layout.
  */
-function App(): JSX.Element {
+function App(): React.JSX.Element {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
@@ -85,22 +85,75 @@ function App(): JSX.Element {
 
                 {/* Protected Routes with Layout */}
                 <Route
-                  path="/app"
+                  path="/dashboard"
                   element={
                     <ProtectedRoute>
-                      <Layout />
+                      <Layout>
+                        <DashboardPage />
+                      </Layout>
                     </ProtectedRoute>
                   }
-                >
-                  <Route index element={<Navigate to="/app/dashboard" replace />} />
-                  <Route path="dashboard" element={<DashboardPage />} />
-                  <Route path="discover" element={<DiscoverPage />} />
-                  <Route path="search" element={<SearchPage />} />
-                  <Route path="playlists" element={<PlaylistsPage />} />
-                  <Route path="playlists/:id" element={<PlaylistDetailPage />} />
-                  <Route path="profile" element={<ProfilePage />} />
-                  <Route path="settings" element={<SettingsPage />} />
-                </Route>
+                />
+                <Route
+                  path="/discover"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <DiscoverPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/search"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <SearchPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/playlists"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <PlaylistsPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/playlists/:id"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <PlaylistDetailPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/profile"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <ProfilePage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/settings"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <SettingsPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
 
                 {/* 404 Route */}
                 <Route path="*" element={<NotFoundPage />} />
