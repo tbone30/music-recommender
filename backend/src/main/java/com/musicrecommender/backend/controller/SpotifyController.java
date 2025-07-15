@@ -8,7 +8,7 @@ import reactor.core.publisher.Mono;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/spotify")
+@RequestMapping("/spotify")
 // @CrossOrigin(origins = "http://localhost:3000")
 public class SpotifyController {
     private final SpotifyIntegrationService spotifyService;
@@ -24,8 +24,8 @@ public class SpotifyController {
     @GetMapping("/test")
     public Mono<String> testSpotifyConnection() {
         return spotifyService.getClientCredentialsToken()
-                .map(token -> "Successfully connected to Spotify API. Token received: " + 
-                             token.substring(0, Math.min(token.length(), 20)) + "...")
-                .onErrorReturn("Failed to connect to Spotify API");
+            .map(token -> "Successfully connected to Spotify API. Token received: " + 
+                            token.substring(0, Math.min(token.length(), 20)) + "...")
+            .onErrorReturn("Failed to connect to Spotify API");
     }
 }
