@@ -104,6 +104,9 @@ class ApiService {
     }
   }
 
+  //remove below
+
+
   // Authentication Endpoints
   async login(email: string, password: string): Promise<ApiResponse<{ user: User; token: string }>> {
     return this.request('POST', '/auth/login', { email, password });
