@@ -8,9 +8,9 @@ import org.springframework.stereotype.Component;
 public class SpotifyProperties {
     private String baseUrl = "https://api.spotify.com/v1";
     private String accountsUrl = "https://accounts.spotify.com";
-    private String clientId;
-    private String clientSecret;
-    private String redirectUri;
+    private String clientId = System.getenv("SPOTIFY_CLIENT_ID");
+    private String clientSecret = System.getenv("SPOTIFY_CLIENT_SECRET");
+    private String redirectUri = System.getenv("SPOTIFY_REDIRECT_URI");
 
     // Getters and setters
     public String getBaseUrl() { return baseUrl; }

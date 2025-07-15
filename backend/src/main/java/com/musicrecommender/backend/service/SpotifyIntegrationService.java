@@ -10,6 +10,7 @@ import reactor.core.publisher.Mono;
 import java.util.Base64;
 import java.util.Map;
 
+@Service
 public class SpotifyIntegrationService {
     private final WebClient spotifyWebClient;
     private final SpotifyProperties spotifyProperties;
