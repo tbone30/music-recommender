@@ -7,15 +7,10 @@ import java.util.List;
 public class Artist {
     @Id
     private String id;
-
     private String href;
-
     private String name;
-
     private int popularity;
-
     private String uri;
-
     private List<String> genres;
 
     public Artist() {
