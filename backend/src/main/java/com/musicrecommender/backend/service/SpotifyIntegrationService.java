@@ -27,34 +27,34 @@ public class SpotifyIntegrationService {
         this.spotifyProperties = spotifyProperties;
     }
 
-public Mono<String> getClientCredentialsToken() {
-    String requestBody = "grant_type=client_credentials&client_id=" + 
-                        spotifyProperties.getClientId() + 
-                        "&client_secret=" + 
-                        spotifyProperties.getClientSecret();
+    public Mono<String> getClientCredentialsToken() {
+        String requestBody = "grant_type=client_credentials&client_id=" + 
+                            spotifyProperties.getClientId() + 
+                            "&client_secret=" + 
+                            spotifyProperties.getClientSecret();
 
-    System.out.println("=== TOKEN REQUEST DEBUG ===");
-    System.out.println("Accounts URL: " + spotifyProperties.getAccountsUrl());
-    System.out.println("Full URL: " + spotifyProperties.getAccountsUrl() + "/api/token");
-    System.out.println("Request body: " + requestBody);
-    System.out.println("============================");
+        System.out.println("=== TOKEN REQUEST DEBUG ===");
+        System.out.println("Accounts URL: " + spotifyProperties.getAccountsUrl());
+        System.out.println("Full URL: " + spotifyProperties.getAccountsUrl() + "/api/token");
+        System.out.println("Request body: " + requestBody);
+        System.out.println("============================");
 
-    return WebClient.create(spotifyProperties.getAccountsUrl())
-        .post()
-        .uri("/api/token")
-        .header(HttpHeaders.CONTENT_TYPE, "application/x-www-form-urlencoded")
-        .bodyValue(requestBody)
-        .retrieve()
-        .onStatus(status -> !status.is2xxSuccessful(),
-            response -> {
-                System.out.println("Token error status: " + response.statusCode());
-                return response.bodyToMono(String.class)
-                        .doOnNext(body -> System.out.println("Error body: " + body))
-                        .then(Mono.error(new RuntimeException("Token request failed")));
-        })
-        .bodyToMono(Map.class)
-        .doOnNext(response -> System.out.println("Token response: " + response))
-        .map(response -> (String) response.get("access_token"));
+        return WebClient.create(spotifyProperties.getAccountsUrl())
+            .post()
+            .uri("/api/token")
+            .header(HttpHeaders.CONTENT_TYPE, "application/x-www-form-urlencoded")
+            .bodyValue(requestBody)
+            .retrieve()
+            .onStatus(status -> !status.is2xxSuccessful(),
+                response -> {
+                    System.out.println("Token error status: " + response.statusCode());
+                    return response.bodyToMono(String.class)
+                            .doOnNext(body -> System.out.println("Error body: " + body))
+                            .then(Mono.error(new RuntimeException("Token request failed")));
+            })
+            .bodyToMono(Map.class)
+            .doOnNext(response -> System.out.println("Token response: " + response))
+            .map(response -> (String) response.get("access_token"));
     }
 
     private Mono<String> getValidToken() {
@@ -83,5 +83,5 @@ public Mono<String> getClientCredentialsToken() {
                 );
                 return artist;
             }));
-}
+    }
 }
