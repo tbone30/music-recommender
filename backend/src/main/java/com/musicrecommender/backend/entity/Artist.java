@@ -9,7 +9,11 @@ public class Artist {
     private String id;
     private String href;
     private String name;
+    private int followers;
     private int popularity;
+    @ElementCollection
+    @CollectionTable(name = "artist_images", joinColumns = @JoinColumn(name = "artist_id"))
+    private List<SpotifyImage> images; 
     private String uri;
     private List<String> genres;
 
@@ -17,11 +21,13 @@ public class Artist {
         // Default constructor for JPA
     }
 
-    public Artist(String id, String href, String name, int popularity, String uri, List<String> genres) {
+    public Artist(String id, String href, String name, int followers, int popularity, List<SpotifyImage> images, String uri, List<String> genres) {
         this.id = id;
         this.href = href;
         this.name = name;
+        this.followers = followers;
         this.popularity = popularity;
+        this.images = images;
         this.uri = uri;
         this.genres = genres;
     }
@@ -38,8 +44,16 @@ public class Artist {
         return name;
     }
 
+    public int getFollowers() {
+        return followers;
+    }
+
     public int getPopularity() {
         return popularity;
+    }
+
+    public List<SpotifyImage> getImages() {
+        return images;
     }
 
     public String getUri() {
@@ -62,8 +76,16 @@ public class Artist {
         this.name = name;
     }
 
+    public void setFollowers(int followers) {
+        this.followers = followers;
+    }
+
     public void setPopularity(int popularity) {
         this.popularity = popularity;
+    }
+
+    public void setImages(List<SpotifyImage> images) {
+        this.images = images;
     }
 
     public void setUri(String uri) {

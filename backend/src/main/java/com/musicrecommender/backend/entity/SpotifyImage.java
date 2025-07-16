@@ -1,5 +1,8 @@
 package com.musicrecommender.backend.entity;
 
+import jakarta.persistence.Embeddable;
+
+@Embeddable
 public class SpotifyImage {
     private String url;
     private int width;

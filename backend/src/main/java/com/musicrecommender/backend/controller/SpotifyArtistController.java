@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 import com.musicrecommender.backend.entity.Artist;
+import java.util.List;
 
 import java.util.Map;
 
@@ -22,5 +23,10 @@ public class SpotifyArtistController {
     @GetMapping("/{artistId}")
     public Mono<String> getArtist(@PathVariable String artistId) {
         return spotifyService.getArtist(artistId).map(Artist::toString);
+    }
+
+    @GetMapping
+    public Mono<List<Artist>> getSeveralArtists(@RequestParam String ids) {
+        return spotifyService.getSeveralArtists(ids);
     }
 }

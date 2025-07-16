@@ -11,12 +11,21 @@ public class Album {
     @Id
     private String id;
     private int totalTracks;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "album_artists",
+        joinColumns = @JoinColumn(name = "album_id"),
+        inverseJoinColumns = @JoinColumn(name = "artist_id")
+    )
     private List<Artist> artists;
+    @OneToMany(mappedBy = "album", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Track> tracks;
     private int popularity;
     private String href;
     private String releaseDate;
     private String releaseDatePrecision; // "year", "month", "day"
+    @ElementCollection
+    @CollectionTable(name = "album_images", joinColumns = @JoinColumn(name = "album_id"))
     private List<SpotifyImage> images;
     private String albumType; // "album", "single", "compilation"
     private String uri;

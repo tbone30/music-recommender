@@ -1,7 +1,7 @@
 package com.musicrecommender.backend.service;
 
 import com.musicrecommender.backend.entity.Artist;
-
+import com.musicrecommender.backend.entity.SpotifyImage;
 import com.musicrecommender.backend.config.SpotifyProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -66,22 +66,50 @@ public class SpotifyIntegrationService {
 
     // Get artist from Spotify by ID
     public Mono<Artist> getArtist(String artistId) {
-    return getValidToken()
-        .flatMap(token -> spotifyWebClient.get()
-            .uri("/artists/{id}", artistId)
-            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-            .retrieve()
-            .bodyToMono(Map.class)
-            .map(response -> {
-                Artist artist = new Artist(
-                    (String) response.get("id"),
-                    (String) response.get("href"),
-                    (String) response.get("name"),
-                    (Integer) response.get("popularity"),
-                    (String) response.get("uri"),
-                    (List<String>) response.get("genres")
-                );
-                return artist;
-            }));
+        return getValidToken()
+            .flatMap(token -> spotifyWebClient.get()
+                .uri("/artists/{id}", artistId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .retrieve()
+                .bodyToMono(Map.class)
+                .map(response -> {
+                    Artist artist = new Artist(
+                        (String) response.get("id"),
+                        (String) response.get("href"),
+                        (String) response.get("name"),
+                        (Integer) ((Map<String, Object>) response.get("followers")).get("total"),
+                        (Integer) response.get("popularity"),
+                        (List<SpotifyImage>) response.get("images"),
+                        (String) response.get("uri"),
+                        (List<String>) response.get("genres")
+                    );
+                    return artist;
+                }));
+    }
+
+    // TODO: fix image translation
+    public Mono<List<Artist>> getSeveralArtists(String ids) {
+        return getValidToken()
+            .flatMap(token -> spotifyWebClient.get()
+                .uri("/artists?ids={ids}", ids)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .retrieve()
+                .bodyToMono(Map.class)
+                .map(response -> {
+                    List<Map<String, Object>> artistsData = (List<Map<String, Object>>) response.get("artists");
+                    List<Artist> artists = artistsData.stream().map(data -> {
+                        return new Artist(
+                            (String) data.get("id"),
+                            (String) data.get("href"),
+                            (String) data.get("name"),
+                            (Integer) ((Map<String, Object>) data.get("followers")).get("total"),
+                            (Integer) data.get("popularity"),
+                            (List<SpotifyImage>) data.get("images"),
+                            (String) data.get("uri"),
+                            (List<String>) data.get("genres")
+                        );
+                    }).toList();
+                    return artists;
+                }));
     }
 }

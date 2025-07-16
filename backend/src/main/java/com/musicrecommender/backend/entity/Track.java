@@ -10,7 +10,15 @@ public class Track {
     @Id
     private Long id;
     private String name;
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "track_artists",
+        joinColumns = @JoinColumn(name = "track_id"),
+        inverseJoinColumns = @JoinColumn(name = "artist_id")
+    )
     private List<Artist> artists;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "album_id")
     private Album album;
     private String uri;
     private int duration; // Duration in milliseconds
