@@ -8,20 +8,12 @@ import java.util.Optional;
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.musicrecommender.backend.service.SpotifyIntegrationService;
-import com.musicrecommender.backend.entity.Album;
-import com.musicrecommender.backend.entity.Artist;
 import com.musicrecommender.backend.entity.Track;
-import com.musicrecommender.backend.repository.TrackRepository;
 import com.musicrecommender.backend.service.ArtistService;
 import com.musicrecommender.backend.service.AlbumService;
 
 @Component
 public class TrackFactory {
-    @Autowired
-    private TrackRepository trackRepository;
-    @Autowired
-    private SpotifyIntegrationService spotifyIntegrationService;
     @Autowired
     private AlbumService albumService;
     @Autowired
