@@ -6,12 +6,14 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.musicrecommender.backend.service.SpotifyIntegrationService;
 import com.musicrecommender.backend.entity.Album;
 import com.musicrecommender.backend.entity.Artist;
 import com.musicrecommender.backend.entity.SpotifyImage;
 import com.musicrecommender.backend.repository.AlbumRepository;
 import com.musicrecommender.backend.factory.ArtistFactory;
 import com.musicrecommender.backend.factory.SpotifyImageFactory;
+import com.musicrecommender.backend.factory.TrackFactory;
 
 import java.util.Optional;
 
@@ -23,6 +25,10 @@ public class AlbumFactory {
     private ArtistFactory artistFactory;
     @Autowired
     private SpotifyImageFactory spotifyImageFactory;
+    @Autowired
+    private TrackFactory trackFactory;
+    @Autowired
+    private SpotifyIntegrationService spotifyIntegrationService;
 
     public Album createAlbumFromJSON(Map<String, Object> albumData) {
         Optional<Album> repositoryResponse = albumRepository.findById((String) albumData.get("id"));
@@ -39,8 +45,19 @@ public class AlbumFactory {
             album.setReleaseDate((String) albumData.get("release_date"));
             album.setReleaseDatePrecision((String) albumData.get("release_date_precision"));
             album.setUri((String) albumData.get("uri"));
-            album.setArtists(artistFactory.createArtistsFromJSON((List<Map<String, Object>>) albumData.get("artists")));
+            album.setArtists(artistFactory.createArtistsFromJSONSimple((List<Map<String, Object>>) albumData.get("artists")));
+            album.setTracks(trackFactory.createTracksFromJSON((List<Map<String, Object>>) albumData.get("tracks")));
+            album.setPopularity((Integer) albumData.get("popularity"));
             return albumRepository.save(album);
+        }
+    }
+
+    public Album createAlbumFromJSONSimple(Map<String, Object> albumData) {
+        Optional<Album> repositoryResponse = albumRepository.findById((String) albumData.get("id"));
+        if (repositoryResponse.isPresent()) {
+            return repositoryResponse.get();
+        } else {
+            return spotifyIntegrationService.getAlbum((String) albumData.get("id"));
         }
     }
 }
