@@ -8,7 +8,7 @@ import com.musicrecommender.backend.entity.Artist;
 @Table(name = "tracks")
 public class Track {
     @Id
-    private Long id;
+    private String id;
     private String name;
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -30,7 +30,7 @@ public class Track {
         // Default constructor for JPA
     }
 
-    public Track(Long id, String name, List<Artist> artists, Album album, String uri, int duration, boolean explicit, String href, int popularity) {
+    public Track(String id, String name, List<Artist> artists, Album album, String uri, int duration, boolean explicit, String href, int popularity) {
         this.id = id;
         this.name = name;
         this.artists = artists;
@@ -42,7 +42,7 @@ public class Track {
         this.popularity = popularity;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
@@ -78,7 +78,7 @@ public class Track {
         return popularity;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 

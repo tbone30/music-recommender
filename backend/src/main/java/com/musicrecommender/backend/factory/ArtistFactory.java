@@ -7,7 +7,7 @@ import java.util.Optional;
 
 import com.musicrecommender.backend.entity.Artist;
 import com.musicrecommender.backend.entity.SpotifyImage;
-import com.musicrecommender.backend.factory.SpotifyImageFactory;
+import com.musicrecommender.backend.service.SpotifyImageService;
 import com.musicrecommender.backend.repository.ArtistRepository;
 import com.musicrecommender.backend.service.SpotifyIntegrationService;
 
@@ -19,7 +19,7 @@ public class ArtistFactory {
     @Autowired
     private final ArtistRepository artistRepository;
     @Autowired
-    private final SpotifyImageFactory spotifyImageFactory;
+    private final SpotifyImageService spotifyImageService;
     @Autowired
     private final SpotifyIntegrationService spotifyIntegrationService;
 
@@ -33,7 +33,7 @@ public class ArtistFactory {
             artist.setGenres((List<String>) artistData.get("genres"));
             artist.setHref((String) artistData.get("href"));
             artist.setId((String) artistData.get("id"));
-            artist.setImages(spotifyImageFactory.createSpotifyImagesFromJSON((List<Map<String, Object>>) artistData.get("images")));
+            artist.setImages(spotifyImageService.createSpotifyImageListFromJSON((List<Map<String, Object>>) artistData.get("images")));
             artist.setName((String) artistData.get("name"));
             artist.setPopularity((Integer) artistData.get("popularity"));
             artist.setUri((String) artistData.get("uri"));
