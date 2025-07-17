@@ -78,9 +78,22 @@ public class SpotifyIntegrationService {
         return cachedToken;
     }
 
+    // ALBUM METHODS
+
+    public Mono<Album> getAlbum(String albumId) {
+        return getValidToken()
+            .flatMap(token -> spotifyWebClient.get()
+                .uri("/albums/{id}", albumId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .retrieve()
+                .bodyToMono(Map.class)
+                .map(response -> {
+                    return albumService.createAlbumFromJSON((Map<String, Object>) response);
+                }));
+    }
+
     //ARTIST METHODS
 
-    // Get artist from Spotify by ID
     public Mono<Artist> getArtist(String artistId) {
         return getValidToken()
             .flatMap(token -> spotifyWebClient.get()
@@ -127,6 +140,20 @@ public class SpotifyIntegrationService {
                 .bodyToMono(Map.class)
                 .map(response -> {
                     return trackService.createTrackListFromJSON((List<Map<String, Object>>) response.get("tracks"));
+                }));
+    }
+
+    // TRACK METHODS
+
+    public Mono<Track> getTrack(String trackId) {
+        return getValidToken()
+            .flatMap(token -> spotifyWebClient.get()
+                .uri("/tracks/{id}", trackId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .retrieve()
+                .bodyToMono(Map.class)
+                .map(response -> {
+                    return trackService.createTrackFromJSON((Map<String, Object>) response);
                 }));
     }
 }
