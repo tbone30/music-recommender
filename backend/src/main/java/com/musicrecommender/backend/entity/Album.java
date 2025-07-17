@@ -1,6 +1,7 @@
 package com.musicrecommender.backend.entity;
 import jakarta.persistence.*;
 import java.util.List;
+import java.util.Map;
 import com.musicrecommender.backend.entity.Artist;
 import com.musicrecommender.backend.entity.Track;
 import com.musicrecommender.backend.entity.SpotifyImage;
@@ -10,6 +11,7 @@ import com.musicrecommender.backend.entity.SpotifyImage;
 public class Album {
     @Id
     private String id;
+    private String name;
     private int totalTracks;
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -34,8 +36,9 @@ public class Album {
         // Default constructor for JPA
     }
 
-    public Album(String id, int totalTracks, List<Artist> artists, List<Track> tracks, int popularity, String href,
+    public Album(String id, String name, int totalTracks, List<Artist> artists, List<Track> tracks, int popularity, String href,
                  String releaseDate, String releaseDatePrecision, List<SpotifyImage> images, String albumType, String uri) {
+        this.name = name;
         this.id = id;
         this.totalTracks = totalTracks;
         this.artists = artists;
@@ -51,6 +54,10 @@ public class Album {
 
     public String getId() {
         return id;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public int getTotalTracks() {
@@ -91,6 +98,10 @@ public class Album {
 
     public String getUri() {
         return uri;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public void setId(String id) {
