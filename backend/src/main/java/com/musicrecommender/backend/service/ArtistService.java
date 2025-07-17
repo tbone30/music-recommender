@@ -7,11 +7,11 @@ import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.context.annotation.Lazy;
 
 import com.musicrecommender.backend.entity.Artist;
 import com.musicrecommender.backend.repository.ArtistRepository;
 import com.musicrecommender.backend.factory.ArtistFactory;
-import com.musicrecommender.backend.service.SpotifyIntegrationService;
 
 @Service
 public class ArtistService {
@@ -22,6 +22,7 @@ public class ArtistService {
     private ArtistFactory artistFactory;
 
     @Autowired
+    @Lazy
     private SpotifyIntegrationService spotifyIntegrationService;
 
     public Artist getArtistById(String id) {

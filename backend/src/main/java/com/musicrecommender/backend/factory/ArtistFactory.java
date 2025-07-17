@@ -7,7 +7,6 @@ import com.musicrecommender.backend.entity.Artist;
 import com.musicrecommender.backend.entity.SpotifyImage;
 
 import org.springframework.stereotype.Component;
-import org.springframework.beans.factory.annotation.Autowired;
 
 @Component
 public class ArtistFactory {

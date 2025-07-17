@@ -1,27 +1,24 @@
 package com.musicrecommender.backend.factory;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.context.annotation.Lazy;
 
-import com.musicrecommender.backend.service.SpotifyIntegrationService;
 import com.musicrecommender.backend.entity.Album;
-import com.musicrecommender.backend.entity.Artist;
 import com.musicrecommender.backend.entity.SpotifyImage;
-import com.musicrecommender.backend.repository.AlbumRepository;
 import com.musicrecommender.backend.service.ArtistService;
 import com.musicrecommender.backend.service.TrackService;
-
-import java.util.Optional;
 
 @Component
 public class AlbumFactory {
     @Autowired
+    @Lazy
     private ArtistService artistService;
     @Autowired
+    @Lazy
     private TrackService trackService;
 
     public Album createAlbumFromJSON(Map<String, Object> albumData) {

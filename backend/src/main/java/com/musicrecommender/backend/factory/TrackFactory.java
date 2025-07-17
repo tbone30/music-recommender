@@ -1,12 +1,11 @@
 package com.musicrecommender.backend.factory;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 
 import com.musicrecommender.backend.entity.Track;
 import com.musicrecommender.backend.service.ArtistService;
@@ -15,8 +14,10 @@ import com.musicrecommender.backend.service.AlbumService;
 @Component
 public class TrackFactory {
     @Autowired
+    @Lazy
     private AlbumService albumService;
     @Autowired
+    @Lazy
     private ArtistService artistService;
 
     public Track createTrackFromJSON(Map<String, Object> trackData) {
