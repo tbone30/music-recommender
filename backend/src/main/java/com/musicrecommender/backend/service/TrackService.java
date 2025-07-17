@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import com.musicrecommender.backend.entity.Track;
 import com.musicrecommender.backend.repository.TrackRepository;
 import com.musicrecommender.backend.factory.TrackFactory;
+import com.musicrecommender.backend.service.SpotifyIntegrationService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,9 @@ public class TrackService {
 
     @Autowired
     private TrackFactory trackFactory;
+
+    @Autowired
+    private SpotifyIntegrationService spotifyIntegrationService;
 
     public Track getTrackById(String id) {
         return trackRepository.findById(id).orElse(null);
@@ -39,7 +43,7 @@ public class TrackService {
         if (repositoryResponse.isPresent()) {
             return repositoryResponse.get();
         } else {
-            return createTrackFromJSON(trackData);
+            return spotifyIntegrationService.getTrack((String) trackData.get("id")).block();
         }
     }
 

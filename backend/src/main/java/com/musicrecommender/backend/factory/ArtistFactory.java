@@ -40,13 +40,4 @@ public class ArtistFactory {
             return artistRepository.save(artist);
         }
     }
-
-    public Artist createArtistFromJSONSimple(Map<String, Object> artistData) {
-        Optional<Artist> repositoryResponse = artistRepository.findById((String) artistData.get("id"));
-        if (repositoryResponse.isPresent()) {
-            return repositoryResponse.get();
-        } else {
-            return spotifyIntegrationService.getArtist((String) artistData.get("id")).block();
-        }
-    }
 }

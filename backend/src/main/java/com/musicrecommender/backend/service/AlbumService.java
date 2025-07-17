@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import com.musicrecommender.backend.entity.Album;
 import com.musicrecommender.backend.repository.AlbumRepository;
 import com.musicrecommender.backend.factory.AlbumFactory;
+import com.musicrecommender.backend.service.SpotifyIntegrationService;
 
 @Service
 public class AlbumService {
@@ -19,6 +20,9 @@ public class AlbumService {
 
     @Autowired
     private AlbumFactory albumFactory;
+
+    @Autowired
+    private SpotifyIntegrationService spotifyIntegrationService;
 
     public Album getAlbumById(String id) {
         return albumRepository.findById(id).orElse(null);
@@ -38,7 +42,7 @@ public class AlbumService {
         if (repositoryResponse.isPresent()) {
             return repositoryResponse.get();
         } else {
-            return createAlbumFromJSON(albumData);
+            return spotifyIntegrationService.getAlbum((String) albumData.get("id")).block();
         }
     }
 

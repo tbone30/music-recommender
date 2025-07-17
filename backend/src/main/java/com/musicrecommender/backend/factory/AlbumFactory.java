@@ -52,13 +52,4 @@ public class AlbumFactory {
             return albumRepository.save(album);
         }
     }
-
-    public Album createAlbumFromJSONSimple(Map<String, Object> albumData) {
-        Optional<Album> repositoryResponse = albumRepository.findById((String) albumData.get("id"));
-        if (repositoryResponse.isPresent()) {
-            return repositoryResponse.get();
-        } else {
-            return spotifyIntegrationService.getAlbum((String) albumData.get("id")).block();
-        }
-    }
 }
