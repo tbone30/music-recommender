@@ -6,7 +6,6 @@ import com.musicrecommender.backend.config.SpotifyProperties;
 import com.musicrecommender.backend.entity.Track;
 import com.musicrecommender.backend.entity.Album;
 import com.musicrecommender.backend.service.AlbumService;
-import com.musicrecommender.backend.service.SpotifyImageService;
 import com.musicrecommender.backend.service.TrackService;
 import com.musicrecommender.backend.service.ArtistService;
 
@@ -30,13 +29,11 @@ public class SpotifyIntegrationService {
     private Mono<String> cachedToken;
 
     @Autowired
-    private final AlbumService albumService;
+    private AlbumService albumService;
     @Autowired
-    private final SpotifyImageService spotifyImageService;
+    private TrackService trackService;
     @Autowired
-    private final TrackService trackService;
-    @Autowired
-    private final ArtistService artistService;
+    private ArtistService artistService;
 
     @Autowired
     public SpotifyIntegrationService(WebClient spotifyWebClient, SpotifyProperties spotifyProperties) {
@@ -104,10 +101,7 @@ public class SpotifyIntegrationService {
                 .bodyToMono(Map.class)
                 .map(response -> {
                     List<Map<String, Object>> artistsData = (List<Map<String, Object>>) response.get("artists");
-                    List<Artist> artists = artistsData.stream().map(data -> {
-                        return artistService.createArtistListFromJSON((Map<String, Object>) data);
-                    }).toList();
-                    return artists;
+                    return artistService.createArtistListFromJSON(artistsData);
                 }));
     }
 
