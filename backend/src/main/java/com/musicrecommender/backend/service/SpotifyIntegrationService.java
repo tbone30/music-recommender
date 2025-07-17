@@ -6,6 +6,10 @@ import com.musicrecommender.backend.config.SpotifyProperties;
 import com.musicrecommender.backend.entity.Track;
 import com.musicrecommender.backend.entity.Album;
 import com.musicrecommender.backend.factory.AlbumFactory;
+import com.musicrecommender.backend.factory.SpotifyImageFactory;
+import com.musicrecommender.backend.factory.TrackFactory;
+import com.musicrecommender.backend.factory.ArtistFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
@@ -23,14 +27,21 @@ import java.time.Duration;
 public class SpotifyIntegrationService {
     private final WebClient spotifyWebClient;
     private final SpotifyProperties spotifyProperties;
-    private final AlbumFactory albumFactory;
     private Mono<String> cachedToken;
+
+    @Autowired
+    private final AlbumFactory albumFactory;
+    @Autowired
+    private final SpotifyImageFactory spotifyImageFactory;
+    @Autowired
+    private final TrackFactory trackFactory;
+    @Autowired
+    private final ArtistFactory artistFactory;
 
     @Autowired
     public SpotifyIntegrationService(WebClient spotifyWebClient, SpotifyProperties spotifyProperties) {
         this.spotifyWebClient = spotifyWebClient;
         this.spotifyProperties = spotifyProperties;
-        this.albumFactory = new AlbumFactory();
     }
 
     public Mono<String> getClientCredentialsToken() {
@@ -79,17 +90,7 @@ public class SpotifyIntegrationService {
                 .retrieve()
                 .bodyToMono(Map.class)
                 .map(response -> {
-                    Artist artist = new Artist(
-                        (String) response.get("id"),
-                        (String) response.get("href"),
-                        (String) response.get("name"),
-                        (Integer) ((Map<String, Object>) response.get("followers")).get("total"),
-                        (Integer) response.get("popularity"),
-                        (List<SpotifyImage>) response.get("images"),
-                        (String) response.get("uri"),
-                        (List<String>) response.get("genres")
-                    );
-                    return artist;
+                    return artistFactory.createArtistFromJSON((Map<String, Object>) response);
                 }));
     }
 
@@ -104,16 +105,7 @@ public class SpotifyIntegrationService {
                 .map(response -> {
                     List<Map<String, Object>> artistsData = (List<Map<String, Object>>) response.get("artists");
                     List<Artist> artists = artistsData.stream().map(data -> {
-                        return new Artist(
-                            (String) data.get("id"),
-                            (String) data.get("href"),
-                            (String) data.get("name"),
-                            (Integer) ((Map<String, Object>) data.get("followers")).get("total"),
-                            (Integer) data.get("popularity"),
-                            (List<SpotifyImage>) data.get("images"),
-                            (String) data.get("uri"),
-                            (List<String>) data.get("genres")
-                        );
+                        return artistFactory.createArtistFromJSON((Map<String, Object>) data);
                     }).toList();
                     return artists;
                 }));

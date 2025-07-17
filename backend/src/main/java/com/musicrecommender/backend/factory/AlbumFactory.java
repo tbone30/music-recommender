@@ -57,7 +57,7 @@ public class AlbumFactory {
         if (repositoryResponse.isPresent()) {
             return repositoryResponse.get();
         } else {
-            return spotifyIntegrationService.getAlbum((String) albumData.get("id"));
+            return spotifyIntegrationService.getAlbum((String) albumData.get("id")).block();
         }
     }
 }
