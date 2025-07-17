@@ -87,7 +87,7 @@ public class SpotifyIntegrationService {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .retrieve()
                 .bodyToMono(Map.class)
-                .map(response -> {
+                .flatMap(response -> {
                     return albumService.createAlbumFromJSON((Map<String, Object>) response);
                 }));
     }
@@ -101,7 +101,7 @@ public class SpotifyIntegrationService {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .retrieve()
                 .bodyToMono(Map.class)
-                .map(response -> {
+                .flatMap(response -> {
                     return artistService.createArtistFromJSON((Map<String, Object>) response);
                 }));
     }
@@ -113,7 +113,7 @@ public class SpotifyIntegrationService {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .retrieve()
                 .bodyToMono(Map.class)
-                .map(response -> {
+                .flatMap(response -> {
                     List<Map<String, Object>> artistsData = (List<Map<String, Object>>) response.get("artists");
                     return artistService.createArtistListFromJSON(artistsData);
                 }));
@@ -126,7 +126,7 @@ public class SpotifyIntegrationService {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .retrieve()
                 .bodyToMono(Map.class)
-                .map(response -> {
+                .flatMap(response -> {
                     return albumService.createAlbumListFromJSON((List<Map<String, Object>>) response.get("items"));
                 }));
     }
@@ -138,7 +138,7 @@ public class SpotifyIntegrationService {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .retrieve()
                 .bodyToMono(Map.class)
-                .map(response -> {
+                .flatMap(response -> {
                     return trackService.createTrackListFromJSON((List<Map<String, Object>>) response.get("tracks"));
                 }));
     }
@@ -152,7 +152,7 @@ public class SpotifyIntegrationService {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .retrieve()
                 .bodyToMono(Map.class)
-                .map(response -> {
+                .flatMap(response -> {
                     return trackService.createTrackFromJSON((Map<String, Object>) response);
                 }));
     }

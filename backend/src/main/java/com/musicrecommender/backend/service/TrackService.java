@@ -1,9 +1,7 @@
 package com.musicrecommender.backend.service;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.List;
-import java.util.ArrayList;
 
 import com.musicrecommender.backend.entity.Track;
 import com.musicrecommender.backend.repository.TrackRepository;
@@ -12,6 +10,8 @@ import com.musicrecommender.backend.factory.TrackFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 
 
 @Service
@@ -26,37 +26,42 @@ public class TrackService {
     @Lazy
     private SpotifyIntegrationService spotifyIntegrationService;
 
-    public Track getTrackById(String id) {
-        return trackRepository.findById(id).orElse(null);
+    public Mono<Track> getTrackById(String id) {
+        return Mono.fromCallable(() -> trackRepository.findById(id).orElse(null));
     }
 
-    public Track createTrackFromJSON(Map<String, Object> trackData) {
-        Optional<Track> repositoryResponse = trackRepository.findById((String) trackData.get("id"));
-        if (repositoryResponse.isPresent()) {
-            return repositoryResponse.get();
-        } else {
-            return trackRepository.save(trackFactory.createTrackFromJSON(trackData));
-        }
+    public Mono<Track> createTrackFromJSON(Map<String, Object> trackData) {
+        String trackId = (String) trackData.get("id");
+        return Mono.fromCallable(() -> trackRepository.findById(trackId))
+            .flatMap(repositoryResponse -> {
+                if (repositoryResponse.isPresent()) {
+                    return Mono.just(repositoryResponse.get());
+                } else {
+                    return trackFactory.createTrackFromJSON(trackData)
+                        .flatMap(track -> Mono.fromCallable(() -> trackRepository.save(track)));
+                }
+            });
     }
 
-    public Track createTrackFromJSONSimple(Map<String, Object> trackData) {
-        Optional<Track> repositoryResponse = trackRepository.findById((String) trackData.get("id"));
-        if (repositoryResponse.isPresent()) {
-            return repositoryResponse.get();
-        } else {
-            return spotifyIntegrationService.getTrack((String) trackData.get("id")).block();
-        }
+    public Mono<Track> createTrackFromJSONSimple(Map<String, Object> trackData) {
+        String trackId = (String) trackData.get("id");
+        return Mono.fromCallable(() -> trackRepository.findById(trackId))
+            .flatMap(repositoryResponse -> {
+                if (repositoryResponse.isPresent()) {
+                    return Mono.just(repositoryResponse.get());
+                } else {
+                    return spotifyIntegrationService.getTrack(trackId);
+                }
+            });
     }
 
-    public List<Track> createTrackListFromJSON(List<Map<String, Object>> tracksData) {
-        List<Track> tracks = new ArrayList<>();
-        for (Map<String, Object> trackData : tracksData) {
-            tracks.add(createTrackFromJSON(trackData));
-        }
-        return tracks;
+    public Mono<List<Track>> createTrackListFromJSON(List<Map<String, Object>> tracksData) {
+        return Flux.fromIterable(tracksData)
+            .flatMap(this::createTrackFromJSON)
+            .collectList();
     }
 
-    public Track saveTrack(Track track) {
-        return trackRepository.save(track);
+    public Mono<Track> saveTrack(Track track) {
+        return Mono.fromCallable(() -> trackRepository.save(track));
     }
 }

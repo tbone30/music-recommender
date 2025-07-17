@@ -5,12 +5,13 @@ import java.util.Map;
 
 import com.musicrecommender.backend.entity.Artist;
 import com.musicrecommender.backend.entity.SpotifyImage;
+import reactor.core.publisher.Mono;
 
 import org.springframework.stereotype.Component;
 
 @Component
 public class ArtistFactory {
-    public Artist createArtistFromJSON(Map<String, Object> artistData) {
+    public Mono<Artist> createArtistFromJSON(Map<String, Object> artistData) {
         Artist artist = new Artist();
         artist.setFollowers((Integer) ((Map<String, Object>) artistData.get("followers")).get("total"));
         artist.setGenres((List<String>) artistData.get("genres"));
@@ -20,6 +21,6 @@ public class ArtistFactory {
         artist.setName((String) artistData.get("name"));
         artist.setPopularity((Integer) artistData.get("popularity"));
         artist.setUri((String) artistData.get("uri"));
-        return artist;
+        return Mono.just(artist);
     }
 }

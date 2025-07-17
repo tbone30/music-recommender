@@ -2,12 +2,12 @@ package com.musicrecommender.backend.service;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.context.annotation.Lazy;
+import reactor.core.publisher.Mono;
+import reactor.core.publisher.Flux;
 
 import com.musicrecommender.backend.entity.Artist;
 import com.musicrecommender.backend.repository.ArtistRepository;
@@ -25,45 +25,48 @@ public class ArtistService {
     @Lazy
     private SpotifyIntegrationService spotifyIntegrationService;
 
-    public Artist getArtistById(String id) {
-        return artistRepository.findById(id).orElse(null);
+    public Mono<Artist> getArtistById(String id) {
+        return Mono.fromCallable(() -> artistRepository.findById(id).orElse(null));
     }
 
-    public Artist createArtistFromJSON(Map<String, Object> artistData) {
-        Optional<Artist> repositoryResponse = artistRepository.findById((String) artistData.get("id"));
-        if (repositoryResponse.isPresent()) {
-            return repositoryResponse.get();
-        } else {
-            return artistRepository.save(artistFactory.createArtistFromJSON(artistData));
-        }
+    public Mono<Artist> createArtistFromJSON(Map<String, Object> artistData) {
+        String artistId = (String) artistData.get("id");
+        return Mono.fromCallable(() -> artistRepository.findById(artistId))
+            .flatMap(repositoryResponse -> {
+                if (repositoryResponse.isPresent()) {
+                    return Mono.just(repositoryResponse.get());
+                } else {
+                    return artistFactory.createArtistFromJSON(artistData)
+                        .flatMap(artist -> Mono.fromCallable(() -> artistRepository.save(artist)));
+                }
+            });
     }
 
-    public Artist createArtistFromJSONSimple(Map<String, Object> artistData) {
-        Optional<Artist> repositoryResponse = artistRepository.findById((String) artistData.get("id"));
-        if (repositoryResponse.isPresent()) {
-            return repositoryResponse.get();
-        } else {
-            return spotifyIntegrationService.getArtist((String) artistData.get("id")).block();
-        }
+    public Mono<Artist> createArtistFromJSONSimple(Map<String, Object> artistData) {
+        String artistId = (String) artistData.get("id");
+        return Mono.fromCallable(() -> artistRepository.findById(artistId))
+            .flatMap(repositoryResponse -> {
+                if (repositoryResponse.isPresent()) {
+                    return Mono.just(repositoryResponse.get());
+                } else {
+                    return spotifyIntegrationService.getArtist(artistId);
+                }
+            });
     }
 
-    public List<Artist> createArtistListFromJSON(List<Map<String, Object>> artistsData) {
-        List<Artist> artists = new ArrayList<>();
-        for (Map<String, Object> artistData : artistsData) {
-            artists.add(createArtistFromJSON(artistData));
-        }
-        return artists;
+    public Mono<List<Artist>> createArtistListFromJSON(List<Map<String, Object>> artistsData) {
+        return Flux.fromIterable(artistsData)
+            .flatMap(this::createArtistFromJSON)
+            .collectList();
     }
 
-    public List<Artist> createArtistListFromJSONSimple(List<Map<String, Object>> artistsData) {
-        List<Artist> artists = new ArrayList<>();
-        for (Map<String, Object> artistData : artistsData) {
-            artists.add(createArtistFromJSONSimple(artistData));
-        }
-        return artists;
+    public Mono<List<Artist>> createArtistListFromJSONSimple(List<Map<String, Object>> artistsData) {
+        return Flux.fromIterable(artistsData)
+            .flatMap(this::createArtistFromJSONSimple)
+            .collectList();
     }
 
-    public Artist saveArtist(Artist artist) {
-        return artistRepository.save(artist);
+    public Mono<Artist> saveArtist(Artist artist) {
+        return Mono.fromCallable(() -> artistRepository.save(artist));
     }
 }
