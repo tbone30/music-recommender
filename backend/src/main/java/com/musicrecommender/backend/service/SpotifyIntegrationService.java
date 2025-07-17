@@ -3,6 +3,9 @@ package com.musicrecommender.backend.service;
 import com.musicrecommender.backend.entity.Artist;
 import com.musicrecommender.backend.entity.SpotifyImage;
 import com.musicrecommender.backend.config.SpotifyProperties;
+import com.musicrecommender.backend.entity.Track;
+import com.musicrecommender.backend.entity.Album;
+import com.musicrecommender.backend.factory.AlbumFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
@@ -12,6 +15,7 @@ import reactor.core.publisher.Mono.*;
 
 import java.util.Base64;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.Map;
 import java.time.Duration;
 
@@ -19,12 +23,14 @@ import java.time.Duration;
 public class SpotifyIntegrationService {
     private final WebClient spotifyWebClient;
     private final SpotifyProperties spotifyProperties;
+    private final AlbumFactory albumFactory;
     private Mono<String> cachedToken;
 
     @Autowired
     public SpotifyIntegrationService(WebClient spotifyWebClient, SpotifyProperties spotifyProperties) {
         this.spotifyWebClient = spotifyWebClient;
         this.spotifyProperties = spotifyProperties;
+        this.albumFactory = new AlbumFactory();
     }
 
     public Mono<String> getClientCredentialsToken() {
@@ -110,6 +116,28 @@ public class SpotifyIntegrationService {
                         );
                     }).toList();
                     return artists;
+                }));
+    }
+
+    public Mono<List<Track>> getArtistTopTracks(String artistId) {
+        return;
+    }
+
+    public Mono<List<Album>> getArtistAlbums(String artistId) {
+        return getValidToken()
+            .flatMap(token -> spotifyWebClient.get()
+                .uri("/artists/{id}/albums", artistId)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .retrieve()
+                .bodyToMono(Map.class)
+                .map(response -> {
+                    List<Map<String, Object>> albumsData = (List<Map<String, Object>>) response.get("items");
+                    List<Album> albums = new ArrayList<>();
+                    for (Map<String, Object> albumData : albumsData) {
+                        Album album = albumFactory.createAlbumFromJSON(albumData);
+                        albums.add(album);
+                    }
+                    return albums;
                 }));
     }
 }
