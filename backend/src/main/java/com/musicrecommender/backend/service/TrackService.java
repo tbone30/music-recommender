@@ -61,6 +61,12 @@ public class TrackService {
             .collectList();
     }
 
+    public Mono<List<Track>> createTrackListFromJSONSimple(List<Map<String, Object>> tracksData) {
+        return Flux.fromIterable(tracksData)
+            .flatMap(this::createTrackFromJSONSimple)
+            .collectList();
+    }
+
     public Mono<Track> saveTrack(Track track) {
         return Mono.fromCallable(() -> trackRepository.save(track));
     }

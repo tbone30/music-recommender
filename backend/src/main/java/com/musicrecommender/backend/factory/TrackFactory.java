@@ -35,7 +35,7 @@ public class TrackFactory {
 
         Map<String, Object> albumData = (Map<String, Object>) trackData.get("album");
         Mono<com.musicrecommender.backend.entity.Album> albumMono = 
-            albumData != null ? albumService.createAlbumFromJSON(albumData) : Mono.empty();
+            albumData != null ? albumService.createAlbumFromJSONSimple(albumData) : Mono.empty();
 
         List<Map<String, Object>> artistsData = (List<Map<String, Object>>) trackData.get("artists");
         Mono<List<com.musicrecommender.backend.entity.Artist>> artistsMono = 

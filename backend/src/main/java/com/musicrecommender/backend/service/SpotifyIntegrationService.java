@@ -9,6 +9,9 @@ import com.musicrecommender.backend.service.AlbumService;
 import com.musicrecommender.backend.service.TrackService;
 import com.musicrecommender.backend.service.ArtistService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
@@ -34,6 +37,8 @@ public class SpotifyIntegrationService {
     private TrackService trackService;
     @Autowired
     private ArtistService artistService;
+
+    private static final Logger logger = LoggerFactory.getLogger(SpotifyIntegrationService.class);
 
     @Autowired
     public SpotifyIntegrationService(WebClient spotifyWebClient, SpotifyProperties spotifyProperties) {
@@ -87,8 +92,45 @@ public class SpotifyIntegrationService {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .retrieve()
                 .bodyToMono(Map.class)
+                .doOnNext(response -> {
+                    // Specifically check for popularity field
+                    Object popularity = response.get("popularity");
+                    logger.info("Popularity field for album {}: {}", albumId, popularity);
+                    
+                    logger.info("Available fields in album response: {}", response.keySet());
+                })
                 .flatMap(response -> {
                     return albumService.createAlbumFromJSON((Map<String, Object>) response);
+                }));
+    }
+
+    public Mono<List<Map<String, Object>>> fetchAllTracksForAlbum(String albumId) {
+        return fetchTracksRecursive(albumId, 0, new ArrayList<>());
+    }
+
+    private Mono<List<Map<String, Object>>> fetchTracksRecursive(String albumId, int offset, List<Map<String, Object>> allTracks) {
+        return getValidToken()
+            .flatMap(token -> spotifyWebClient.get()
+                .uri("/albums/{id}/tracks?offset={offset}&limit=50", albumId, offset)
+                .header("Authorization", "Bearer " + token)
+                .retrieve()
+                .bodyToMono(Map.class)
+                .flatMap(response -> {
+                    // Add current page tracks
+                    List<Map<String, Object>> items = (List<Map<String, Object>>) response.get("items");
+                    if (items != null && !items.isEmpty()) {
+                        allTracks.addAll(items);
+                    }
+                    
+                    // Check if there are more pages
+                    String next = (String) response.get("next");
+                    if (next != null) {
+                        // More pages available - recursive call
+                        return fetchTracksRecursive(albumId, offset + 50, allTracks);
+                    } else {
+                        // All pages fetched
+                        return Mono.just(allTracks);
+                    }
                 }));
     }
 
@@ -127,7 +169,7 @@ public class SpotifyIntegrationService {
                 .retrieve()
                 .bodyToMono(Map.class)
                 .flatMap(response -> {
-                    return albumService.createAlbumListFromJSON((List<Map<String, Object>>) response.get("items"));
+                    return albumService.createAlbumListFromJSONSimple((List<Map<String, Object>>) response.get("items"));
                 }));
     }
 

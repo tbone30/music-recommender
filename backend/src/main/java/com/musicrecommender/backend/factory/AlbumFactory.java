@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.context.annotation.Lazy;
 
+import com.musicrecommender.backend.entity.Artist;
+import com.musicrecommender.backend.entity.Track;
 import com.musicrecommender.backend.entity.Album;
 import com.musicrecommender.backend.entity.SpotifyImage;
 import com.musicrecommender.backend.service.ArtistService;
@@ -35,14 +37,14 @@ public class AlbumFactory {
         album.setReleaseDatePrecision((String) albumData.get("release_date_precision"));
         album.setUri((String) albumData.get("uri"));
         album.setPopularity((Integer) albumData.get("popularity"));
-        
+
         List<Map<String, Object>> artistsData = (List<Map<String, Object>>) albumData.get("artists");
-        Mono<List<com.musicrecommender.backend.entity.Artist>> artistsMono = 
+        Mono<List<Artist>> artistsMono = 
             artistsData != null ? artistService.createArtistListFromJSONSimple(artistsData) : Mono.just(List.of());
 
-        List<Map<String, Object>> tracksData = (List<Map<String, Object>>) albumData.get("tracks");
-        Mono<List<com.musicrecommender.backend.entity.Track>> tracksMono = 
-            tracksData != null ? trackService.createTrackListFromJSON(tracksData) : Mono.just(List.of());
+        List<Map<String, Object>> tracksData = (List<Map<String, Object>>) ((Map<String, Object>) albumData.get("tracks")).get("items");
+        Mono<List<Track>> tracksMono =
+            tracksData != null ? trackService.createTrackListFromJSONSimple(tracksData) : Mono.just(List.of());
 
         return Mono.zip(artistsMono, tracksMono)
             .map(tuple -> {
