@@ -134,6 +134,19 @@ public class SpotifyIntegrationService {
                 }));
     }
 
+    public Mono<List<Album>> getSeveralAlbums(String ids) {
+        return getValidToken()
+            .flatMap(token -> spotifyWebClient.get()
+                .uri("/albums?ids={ids}", ids)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                .retrieve()
+                .bodyToMono(Map.class)
+                .flatMap(response -> {
+                    List<Map<String, Object>> albumsData = (List<Map<String, Object>>) response.get("albums");
+                    return albumService.createAlbumListFromJSON(albumsData);
+                }));
+    }
+
     //ARTIST METHODS
 
     public Mono<Artist> getArtist(String artistId) {
@@ -161,6 +174,7 @@ public class SpotifyIntegrationService {
                 }));
     }
 
+    // TODO: Update album handling to properly process pagination
     public Mono<List<Album>> getArtistAlbums(String artistId) {
         return getValidToken()
             .flatMap(token -> spotifyWebClient.get()

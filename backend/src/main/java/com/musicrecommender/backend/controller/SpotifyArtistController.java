@@ -22,6 +22,11 @@ public class SpotifyArtistController {
         this.spotifyService = spotifyService;
     }
 
+    @GetMapping("/{artistId}/albums")
+    public Mono<List<Album>> getArtistAlbums(@PathVariable String artistId) {
+        return spotifyService.getArtistAlbums(artistId);
+    }
+
     @GetMapping("/{artistId}")
     public Mono<String> getArtist(@PathVariable String artistId) {
         return spotifyService.getArtist(artistId).map(Artist::toString);
@@ -30,11 +35,6 @@ public class SpotifyArtistController {
     @GetMapping
     public Mono<List<Artist>> getSeveralArtists(@RequestParam String ids) {
         return spotifyService.getSeveralArtists(ids);
-    }
-
-    @GetMapping("/{artistId}/albums")
-    public Mono<List<Album>> getArtistAlbums(@PathVariable String artistId) {
-        return spotifyService.getArtistAlbums(artistId);
     }
 
     @GetMapping("/{artistId}/top-tracks")

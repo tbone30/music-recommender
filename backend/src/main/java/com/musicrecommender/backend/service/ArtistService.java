@@ -61,9 +61,11 @@ public class ArtistService {
     }
 
     public Mono<List<Artist>> createArtistListFromJSONSimple(List<Map<String, Object>> artistsData) {
-        return Flux.fromIterable(artistsData)
-            .flatMap(this::createArtistFromJSONSimple)
-            .collectList();
+        List<String> ids = artistsData.stream()
+            .map(artist -> (String) artist.get("id"))
+            .toList();
+        String idsCommaSeparated = String.join(",", ids);
+        return spotifyIntegrationService.getSeveralArtists(idsCommaSeparated);
     }
 
     public Mono<Artist> saveArtist(Artist artist) {
