@@ -5,12 +5,14 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.context.annotation.Lazy;
+
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Flux;
 
 import com.musicrecommender.backend.entity.Artist;
 import com.musicrecommender.backend.entity.Album;
-import com.musicrecommender.backend.service.AlbumService;
+import com.musicrecommender.backend.entity.Track;
 import com.musicrecommender.backend.repository.ArtistRepository;
 import com.musicrecommender.backend.factory.ArtistFactory;
 
@@ -18,18 +20,24 @@ import com.musicrecommender.backend.factory.ArtistFactory;
 public class ArtistService {
     @Autowired
     private ArtistRepository artistRepository;
-
     @Autowired
     private ArtistFactory artistFactory;
-
     @Autowired
     private AlbumService albumService;
-
     @Autowired
+    @Lazy
+    private TrackService trackService;
+    @Autowired
+    @Lazy
     private SpotifyIntegrationService spotifyIntegrationService;
 
     public Mono<Artist> getArtist(String id) {
         return Mono.fromCallable(() -> artistRepository.findById(id).orElse(null));
+    }
+
+    public Mono<List<Artist>> getSeveralArtists(String ids) {
+        return spotifyIntegrationService.getSeveralArtists(ids)
+            .flatMap(artists -> createArtistListFromJSON(artists));
     }
 
     public Mono<Artist> saveArtist(Artist artist) {
@@ -48,6 +56,11 @@ public class ArtistService {
                     return albumService.createAlbumListFromJSONSimple((List<Map<String, Object>>) albums.get("items"));
                 }
             });
+    }
+
+    public Mono<List<Track>> getArtistTopTracks(String artistId) {
+        return spotifyIntegrationService.getArtistTopTracks(artistId)
+            .flatMap(tracks -> trackService.createTrackListFromJSON(tracks));
     }
 
     public Mono<Artist> createArtistFromJSON(Map<String, Object> artistData) {

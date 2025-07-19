@@ -9,6 +9,8 @@ import com.musicrecommender.backend.factory.TrackFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.context.annotation.Lazy;
+
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Flux;
 
@@ -17,15 +19,23 @@ import reactor.core.publisher.Flux;
 public class TrackService {
     @Autowired
     private TrackRepository trackRepository;
-
     @Autowired
     private TrackFactory trackFactory;
-
     @Autowired
+    @Lazy
     private SpotifyIntegrationService spotifyIntegrationService;
 
     public Mono<Track> getTrack(String id) {
         return Mono.fromCallable(() -> trackRepository.findById(id).orElse(null));
+    }
+
+    public Mono<List<Track>> getSeveralTracks(String ids) {
+        return spotifyIntegrationService.getSeveralTracks(ids)
+            .flatMap(tracks -> createTrackListFromJSON(tracks));
+    }
+
+    public Mono<Track> saveTrack(Track track) {
+        return Mono.fromCallable(() -> trackRepository.save(track));
     }
 
     public Mono<Track> createTrackFromJSON(Map<String, Object> trackData) {
@@ -64,9 +74,5 @@ public class TrackService {
         return Flux.fromIterable(tracksData)
             .flatMap(this::createTrackFromJSONSimple)
             .collectList();
-    }
-
-    public Mono<Track> saveTrack(Track track) {
-        return Mono.fromCallable(() -> trackRepository.save(track));
     }
 }

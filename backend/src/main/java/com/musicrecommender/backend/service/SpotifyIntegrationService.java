@@ -163,13 +163,13 @@ public class SpotifyIntegrationService {
         return fetchAllPagesFromUrl((String) initialAlbums.get("next"), (List<Map<String, Object>>) initialAlbums.get("items"));
     }
 
-    public Mono<Map<String, Object>> getArtistTopTracks(String artistId) {
+    public Mono<List<Map<String, Object>>> getArtistTopTracks(String artistId) {
         return getValidToken()
             .flatMap(token -> spotifyWebClient.get()
                 .uri("/artists/{id}/top-tracks", artistId)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {}));
+                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {}));
     }
 
     // TRACK METHODS

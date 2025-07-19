@@ -16,13 +16,10 @@ import com.musicrecommender.backend.factory.AlbumFactory;
 
 @Service
 public class AlbumService {
-    
     @Autowired
     private AlbumRepository albumRepository;
-
     @Autowired
     private AlbumFactory albumFactory;
-
     @Autowired
     @Lazy
     private SpotifyIntegrationService spotifyIntegrationService;
