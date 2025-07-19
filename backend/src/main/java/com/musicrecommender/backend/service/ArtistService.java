@@ -49,7 +49,8 @@ public class ArtistService {
                 if (repositoryResponse.isPresent()) {
                     return Mono.just(repositoryResponse.get());
                 } else {
-                    return spotifyIntegrationService.getArtist(artistId);
+                    return spotifyIntegrationService.getArtist(artistId)
+                                                    .flatMap(artist -> createArtistFromJSON(artist));
                 }
             });
     }
@@ -65,7 +66,8 @@ public class ArtistService {
             .map(artist -> (String) artist.get("id"))
             .toList();
         String idsCommaSeparated = String.join(",", ids);
-        return spotifyIntegrationService.getSeveralArtists(idsCommaSeparated);
+        return spotifyIntegrationService.getSeveralArtists(idsCommaSeparated)
+                                        .flatMap(artists -> createArtistListFromJSON(artists));
     }
 
     public Mono<Artist> saveArtist(Artist artist) {

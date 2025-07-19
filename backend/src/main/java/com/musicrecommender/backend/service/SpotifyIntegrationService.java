@@ -95,13 +95,43 @@ public class SpotifyIntegrationService {
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {}));
     }
 
-    public Mono<Map<String, Object>> getSeveralAlbums(String ids) {
+    public Mono<List<Map<String, Object>>> getSeveralAlbums(String ids) {
         return getValidToken()
             .flatMap(token -> spotifyWebClient.get()
                 .uri("/albums?ids={ids}", ids)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {}));
+                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {}));
+    }
+
+    public Mono<List<Map<String, Object>>> fetchAllTracksForAlbum(String albumId) {
+        return fetchTracksRecursive(albumId, 0, new ArrayList<>());
+    }
+
+    private Mono<List<Map<String, Object>>> fetchTracksRecursive(String albumId, int offset, List<Map<String, Object>> allTracks) {
+        return getValidToken()
+            .flatMap(token -> spotifyWebClient.get()
+                .uri("/albums/{id}/tracks?offset={offset}&limit=50", albumId, offset)
+                .header("Authorization", "Bearer " + token)
+                .retrieve()
+                .bodyToMono(Map.class)
+                .flatMap(response -> {
+                    // Add current page tracks
+                    List<Map<String, Object>> items = (List<Map<String, Object>>) response.get("items");
+                    if (items != null && !items.isEmpty()) {
+                        allTracks.addAll(items);
+                    }
+                    
+                    // Check if there are more pages
+                    String next = (String) response.get("next");
+                    if (next != null) {
+                        // More pages available - recursive call
+                        return fetchTracksRecursive(albumId, offset + 50, allTracks);
+                    } else {
+                        // All pages fetched
+                        return Mono.just(allTracks);
+                    }
+                }));
     }
 
     //ARTIST METHODS
@@ -115,13 +145,13 @@ public class SpotifyIntegrationService {
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {}));
     }
 
-    public Mono<Map<String, Object>> getSeveralArtists(String ids) {
+    public Mono<List<Map<String, Object>>> getSeveralArtists(String ids) {
         return getValidToken()
             .flatMap(token -> spotifyWebClient.get()
                 .uri("/artists?ids={ids}", ids)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {}));
+                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {}));
     }
 
     // TODO: Update album handling to properly process pagination
@@ -154,12 +184,12 @@ public class SpotifyIntegrationService {
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {}));
     }
 
-    public Mono<Map<String, Object>> getSeveralTracks(String ids) {
+    public Mono<List<Map<String, Object>>> getSeveralTracks(String ids) {
         return getValidToken()
             .flatMap(token -> spotifyWebClient.get()
                 .uri("/tracks?ids={ids}", ids)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {}));
+                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {}));
     }
 }   

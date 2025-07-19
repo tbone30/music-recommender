@@ -8,7 +8,6 @@ import com.musicrecommender.backend.repository.TrackRepository;
 import com.musicrecommender.backend.factory.TrackFactory;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Flux;
@@ -23,10 +22,9 @@ public class TrackService {
     private TrackFactory trackFactory;
 
     @Autowired
-    @Lazy
     private SpotifyIntegrationService spotifyIntegrationService;
 
-    public Mono<Track> getTrackById(String id) {
+    public Mono<Track> getTrack(String id) {
         return Mono.fromCallable(() -> trackRepository.findById(id).orElse(null));
     }
 
@@ -50,7 +48,8 @@ public class TrackService {
                 if (repositoryResponse.isPresent()) {
                     return Mono.just(repositoryResponse.get());
                 } else {
-                    return spotifyIntegrationService.getTrack(trackId);
+                    return spotifyIntegrationService.getTrack(trackId)
+                                                    .flatMap(track -> createTrackFromJSON(track));
                 }
             });
     }
