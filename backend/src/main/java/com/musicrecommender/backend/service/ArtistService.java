@@ -5,11 +5,12 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.context.annotation.Lazy;
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Flux;
 
 import com.musicrecommender.backend.entity.Artist;
+import com.musicrecommender.backend.entity.Album;
+import com.musicrecommender.backend.service.AlbumService;
 import com.musicrecommender.backend.repository.ArtistRepository;
 import com.musicrecommender.backend.factory.ArtistFactory;
 
@@ -22,11 +23,31 @@ public class ArtistService {
     private ArtistFactory artistFactory;
 
     @Autowired
-    @Lazy
+    private AlbumService albumService;
+
+    @Autowired
     private SpotifyIntegrationService spotifyIntegrationService;
 
-    public Mono<Artist> getArtistById(String id) {
+    public Mono<Artist> getArtist(String id) {
         return Mono.fromCallable(() -> artistRepository.findById(id).orElse(null));
+    }
+
+    public Mono<Artist> saveArtist(Artist artist) {
+        return Mono.fromCallable(() -> artistRepository.save(artist));
+    }
+
+    public Mono<List<Album>> getArtistAlbums(String artistId) {
+        return spotifyIntegrationService.getArtistAlbums(artistId)
+            .flatMap(albums -> {
+                if((String) albums.get("next") != null) {
+                    // If there are more pages, fetch all albums
+                    return spotifyIntegrationService.fetchAllAlbumsForArtist(albums)
+                        .flatMap(allAlbums -> albumService.createAlbumListFromJSONSimple((List<Map<String, Object>>) allAlbums));
+                } else {
+                    // No more pages, return the current list
+                    return albumService.createAlbumListFromJSONSimple((List<Map<String, Object>>) albums.get("items"));
+                }
+            });
     }
 
     public Mono<Artist> createArtistFromJSON(Map<String, Object> artistData) {
@@ -68,9 +89,5 @@ public class ArtistService {
         String idsCommaSeparated = String.join(",", ids);
         return spotifyIntegrationService.getSeveralArtists(idsCommaSeparated)
                                         .flatMap(artists -> createArtistListFromJSON(artists));
-    }
-
-    public Mono<Artist> saveArtist(Artist artist) {
-        return Mono.fromCallable(() -> artistRepository.save(artist));
     }
 }

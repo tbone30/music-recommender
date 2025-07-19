@@ -1,4 +1,4 @@
-fix pagination for both albums and tracks
+update get list functions to use get several functions
 
 add more endpoints for spotify
 

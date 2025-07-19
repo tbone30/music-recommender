@@ -27,46 +27,49 @@ public class AlbumService {
     @Lazy
     private SpotifyIntegrationService spotifyIntegrationService;
 
-    public Mono<Album> getAlbumById(String id) {
+    public Mono<Album> getAlbum(String id) {
         return Mono.fromCallable(() -> albumRepository.findById(id).orElse(null));
+    }
+
+    public Mono<List<Album>> getSeveralAlbums(String ids) {
+        return spotifyIntegrationService.getSeveralAlbums(ids)
+            .flatMap(albums -> createAlbumListFromJSON(albums));
+    }
+
+    public Mono<Album> saveAlbum(Album album) {
+        return Mono.fromCallable(() -> albumRepository.save(album));
     }
 
     private Mono<Album> createAlbumFromJSON(Map<String, Object> albumData) {
         String albumId = (String) albumData.get("id");
         
-        // Check if tracks need pagination
         Object tracksObject = albumData.get("tracks");
-        if (tracksObject instanceof Map) {
-            Map<String, Object> tracksMap = (Map<String, Object>) tracksObject;
-            String nextUrl = (String) tracksMap.get("next");
-            Object itemsObject = tracksMap.get("items");
-            int currentTrackCount = 0;
-            if (itemsObject instanceof List) {
-                currentTrackCount = ((List<?>) itemsObject).size();
-            }
-            
-            if (nextUrl != null) {
-                // Has more pages - fetch all tracks
-                return spotifyIntegrationService.fetchAllTracksForAlbum(albumId)
-                    .map(allTracks -> {
-                        // Replace tracks in albumData with complete set
-                        Map<String, Object> completeTracksObject = Map.of(
-                            "items", allTracks,
-                            "total", allTracks.size(),
-                            "limit", 50,
-                            "offset", 0,
-                            "next", null  // No more pages
-                        );
-                        albumData.put("tracks", completeTracksObject);
-                        return albumData;
-                    })
-                    .flatMap(completeAlbumData -> {
-                        return albumFactory.createAlbumFromJSON(completeAlbumData);
-                    })
-                    .flatMap(album -> {
-                        return Mono.fromCallable(() -> albumRepository.save(album));
-                    });
-            }
+        Map<String, Object> tracksMap = (Map<String, Object>) tracksObject;
+        String nextUrl = (String) tracksMap.get("next");
+        Object itemsObject = tracksMap.get("items");
+        int currentTrackCount = 0;
+        if (itemsObject instanceof List) {
+            currentTrackCount = ((List<?>) itemsObject).size();
+        }
+        
+        if (nextUrl != null) {
+            // Has more pages - fetch all tracks
+            return spotifyIntegrationService.fetchAllTracksForAlbum(tracksMap)
+                .map(allTracks -> {
+                    // Replace tracks in albumData with complete set
+                    Map<String, Object> completeTracksObject = Map.of(
+                        "items", allTracks,
+                        "total", allTracks.size()
+                    );
+                    albumData.put("tracks", completeTracksObject);
+                    return albumData;
+                })
+                .flatMap(completeAlbumData -> {
+                    return albumFactory.createAlbumFromJSON(completeAlbumData);
+                })
+                .flatMap(album -> {
+                    return Mono.fromCallable(() -> albumRepository.save(album));
+                });
         }
         
         // Only one page of tracks or no tracks
@@ -101,9 +104,5 @@ public class AlbumService {
         return Flux.fromIterable(albumsData)
             .flatMap(this::createAlbumFromJSONSimple)
             .collectList();
-    }
-
-    public Mono<Album> saveAlbum(Album album) {
-        return Mono.fromCallable(() -> albumRepository.save(album));
     }
 }

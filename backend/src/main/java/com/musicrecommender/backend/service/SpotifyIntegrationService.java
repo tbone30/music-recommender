@@ -1,13 +1,6 @@
 package com.musicrecommender.backend.service;
 
-import com.musicrecommender.backend.entity.Artist;
-import com.musicrecommender.backend.entity.SpotifyImage;
 import com.musicrecommender.backend.config.SpotifyProperties;
-import com.musicrecommender.backend.entity.Track;
-import com.musicrecommender.backend.entity.Album;
-import com.musicrecommender.backend.service.AlbumService;
-import com.musicrecommender.backend.service.TrackService;
-import com.musicrecommender.backend.service.ArtistService;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,9 +11,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
-import reactor.core.publisher.Mono.*;
 
-import java.util.Base64;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
@@ -84,6 +75,37 @@ public class SpotifyIntegrationService {
         return cachedToken;
     }
 
+    private Mono<List<Map<String, Object>>> fetchAllPagesFromUrl(String nextUrl, List<Map<String, Object>> allObjects) {
+        return getValidToken()
+            .flatMap(token -> {
+                // Extract the path and query from the full URL
+                String path = nextUrl.replace("https://api.spotify.com/v1", "");
+                
+                return spotifyWebClient.get()
+                    .uri(path)
+                    .header("Authorization", "Bearer " + token)
+                    .retrieve()
+                    .bodyToMono(Map.class)
+                    .flatMap(response -> {
+                        // Add current page
+                        List<Map<String, Object>> items = (List<Map<String, Object>>) response.get("items");
+                        if (items != null && !items.isEmpty()) {
+                            allObjects.addAll(items);
+                        }
+                        
+                        // Check if there are more pages
+                        String next = (String) response.get("next");
+                        if (next != null) {
+                            // Recursively fetch the next page
+                            return fetchAllPagesFromUrl(next, allObjects);
+                        } else {
+                            // All pages fetched
+                            return Mono.just(allObjects);
+                        }
+                    });
+            });
+    }
+
     // ALBUM METHODS
 
     public Mono<Map<String, Object>> getAlbum(String albumId) {
@@ -104,34 +126,8 @@ public class SpotifyIntegrationService {
                 .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {}));
     }
 
-    public Mono<List<Map<String, Object>>> fetchAllTracksForAlbum(String albumId) {
-        return fetchTracksRecursive(albumId, 0, new ArrayList<>());
-    }
-
-    private Mono<List<Map<String, Object>>> fetchTracksRecursive(String albumId, int offset, List<Map<String, Object>> allTracks) {
-        return getValidToken()
-            .flatMap(token -> spotifyWebClient.get()
-                .uri("/albums/{id}/tracks?offset={offset}&limit=50", albumId, offset)
-                .header("Authorization", "Bearer " + token)
-                .retrieve()
-                .bodyToMono(Map.class)
-                .flatMap(response -> {
-                    // Add current page tracks
-                    List<Map<String, Object>> items = (List<Map<String, Object>>) response.get("items");
-                    if (items != null && !items.isEmpty()) {
-                        allTracks.addAll(items);
-                    }
-                    
-                    // Check if there are more pages
-                    String next = (String) response.get("next");
-                    if (next != null) {
-                        // More pages available - recursive call
-                        return fetchTracksRecursive(albumId, offset + 50, allTracks);
-                    } else {
-                        // All pages fetched
-                        return Mono.just(allTracks);
-                    }
-                }));
+    public Mono<List<Map<String, Object>>> fetchAllTracksForAlbum(Map<String, Object> initialTracks) {
+        return fetchAllPagesFromUrl((String) initialTracks.get("next"), (List<Map<String, Object>>) initialTracks.get("items"));
     }
 
     //ARTIST METHODS
@@ -154,7 +150,6 @@ public class SpotifyIntegrationService {
                 .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {}));
     }
 
-    // TODO: Update album handling to properly process pagination
     public Mono<Map<String, Object>> getArtistAlbums(String artistId) {
         return getValidToken()
             .flatMap(token -> spotifyWebClient.get()
@@ -162,6 +157,10 @@ public class SpotifyIntegrationService {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
                 .retrieve()
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {}));
+    }
+
+    public Mono<List<Map<String, Object>>> fetchAllAlbumsForArtist(Map<String, Object> initialAlbums) {
+        return fetchAllPagesFromUrl((String) initialAlbums.get("next"), (List<Map<String, Object>>) initialAlbums.get("items"));
     }
 
     public Mono<Map<String, Object>> getArtistTopTracks(String artistId) {

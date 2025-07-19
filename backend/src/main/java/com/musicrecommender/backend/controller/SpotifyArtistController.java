@@ -18,14 +18,14 @@ public class SpotifyArtistController {
     @Autowired
     private ArtistService artistService;
 
+    @GetMapping("/{artistId}")
+    public Mono<Artist> getArtist(@PathVariable String artistId) {
+        return artistService.getArtist(artistId);
+    }
+
     @GetMapping("/{artistId}/albums")
     public Mono<List<Album>> getArtistAlbums(@PathVariable String artistId) {
         return artistService.getArtistAlbums(artistId);
-    }
-
-    @GetMapping("/{artistId}")
-    public Mono<String> getArtist(@PathVariable String artistId) {
-        return artistService.getArtist(artistId);
     }
 
     @GetMapping
