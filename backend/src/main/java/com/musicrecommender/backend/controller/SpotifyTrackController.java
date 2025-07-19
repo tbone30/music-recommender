@@ -1,6 +1,6 @@
 package com.musicrecommender.backend.controller;
 
-import com.musicrecommender.backend.service.SpotifyIntegrationService;
+import com.musicrecommender.backend.service.TrackService;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.web.bind.annotation.RestController;
@@ -15,21 +15,15 @@ import org.springframework.web.bind.annotation.PathVariable;
 public class SpotifyTrackController {
 
     @Autowired
-    private SpotifyIntegrationService spotifyIntegrationService;
+    private TrackService trackService;
 
     @GetMapping("/{id}")
     public String getTrackById(@PathVariable String id) {
-        return spotifyIntegrationService.getTrack(id)
-            .map(track -> track.toString())
-            .defaultIfEmpty("Track not found")
-            .block();
+        return trackService.getTrack(id);
     }
 
     @GetMapping
     public String getSeveralTracks(@RequestParam String ids) {
-        return spotifyIntegrationService.getSeveralTracks(ids)
-            .map(tracks -> tracks.toString())
-            .defaultIfEmpty("No tracks found")
-            .block();
+        return trackService.getSeveralTracks(ids);
     }
 }

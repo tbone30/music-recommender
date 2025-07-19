@@ -3,7 +3,7 @@ package com.musicrecommender.backend.controller;
 import java.util.List;
 
 import com.musicrecommender.backend.entity.Album;
-import com.musicrecommender.backend.service.SpotifyIntegrationService;
+import com.musicrecommender.backend.service.AlbumService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,15 +18,15 @@ import reactor.core.publisher.Mono;
 @RequestMapping("/api/albums")
 public class SpotifyAlbumController {
     @Autowired
-    private SpotifyIntegrationService spotifyIntegrationService;
+    private AlbumService albumService;
 
     @GetMapping("/{id}")
     public Mono<Album> getAlbum(@PathVariable String id) {
-        return spotifyIntegrationService.getAlbum(id);
+        return albumService.getAlbum(id);
     }
 
     @GetMapping
     public Mono<List<Album>> getSeveralAlbums(@RequestParam String ids) {
-        return spotifyIntegrationService.getSeveralAlbums(ids);
+        return albumService.getSeveralAlbums(ids);
     }
 }

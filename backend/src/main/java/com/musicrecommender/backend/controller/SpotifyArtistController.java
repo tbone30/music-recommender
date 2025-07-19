@@ -1,6 +1,6 @@
 package com.musicrecommender.backend.controller;
 
-import com.musicrecommender.backend.service.SpotifyIntegrationService;
+import com.musicrecommender.backend.service.ArtistService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
@@ -15,30 +15,26 @@ import java.util.Map;
 @RequestMapping("/spotify/artists")
 // @CrossOrigin(origins = "http://localhost:3000")
 public class SpotifyArtistController {
-    private final SpotifyIntegrationService spotifyService;
-
     @Autowired
-    public SpotifyArtistController(SpotifyIntegrationService spotifyService) {
-        this.spotifyService = spotifyService;
-    }
+    private ArtistService artistService;
 
     @GetMapping("/{artistId}/albums")
     public Mono<List<Album>> getArtistAlbums(@PathVariable String artistId) {
-        return spotifyService.getArtistAlbums(artistId);
+        return artistService.getArtistAlbums(artistId);
     }
 
     @GetMapping("/{artistId}")
     public Mono<String> getArtist(@PathVariable String artistId) {
-        return spotifyService.getArtist(artistId).map(Artist::toString);
+        return artistService.getArtist(artistId);
     }
 
     @GetMapping
     public Mono<List<Artist>> getSeveralArtists(@RequestParam String ids) {
-        return spotifyService.getSeveralArtists(ids);
+        return artistService.getSeveralArtists(ids);
     }
 
     @GetMapping("/{artistId}/top-tracks")
     public Mono<List<Track>> getArtistTopTracks(@PathVariable String artistId) {
-        return spotifyService.getArtistTopTracks(artistId);
+        return artistService.getArtistTopTracks(artistId);
     }
 }
