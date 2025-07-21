@@ -13,6 +13,13 @@ public class WebClientConfig {
     }
 
     @Bean
+    public WebClient webClient() {
+        return WebClient.builder()
+            .codecs(configurer -> configurer.defaultCodecs().maxInMemorySize(1024 * 1024))
+            .build();
+    }
+
+    @Bean
     public WebClient spotifyWebClient(WebClient.Builder webClientBuilder, SpotifyProperties spotifyProperties) {
         return webClientBuilder
                 .baseUrl(spotifyProperties.getBaseUrl())

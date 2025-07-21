@@ -11,6 +11,7 @@ import com.musicrecommender.backend.entity.Track;
 import com.musicrecommender.backend.entity.Artist;
 import com.musicrecommender.backend.entity.Album;
 import com.musicrecommender.backend.service.ArtistService;
+import com.musicrecommender.backend.service.SpotifyIntegrationService;
 import com.musicrecommender.backend.repository.TrackRepository;
 
 import reactor.core.publisher.Mono;
@@ -27,7 +28,11 @@ public class TrackFactory {
     private ArtistService artistService;
     @Autowired
     private TrackRepository trackRepository;
+    @Autowired
+    private SpotifyIntegrationService spotifyIntegrationService;
 
+    // Create track from JSON data (works with both client credentials and user tokens)
+    @SuppressWarnings("unchecked")
     public Mono<Track> createTrackFromJSON(Map<String, Object> trackData) {
         // Create track object
         Track track = new Track();
@@ -53,5 +58,17 @@ public class TrackFactory {
                 track.setArtists(artists);
                 return Mono.fromCallable(() -> trackRepository.save(track));
             });
+    }
+    
+    // Create track from Spotify using client credentials (public data)
+    public Mono<Track> createTrackFromSpotifyId(String trackId) {
+        return spotifyIntegrationService.getTrack(trackId)
+            .flatMap(this::createTrackFromJSON);
+    }
+    
+    // Create track from Spotify using user's access token (personal data)
+    public Mono<Track> createTrackFromSpotifyWithUserToken(String trackId, String accessToken) {
+        return spotifyIntegrationService.getTrackWithUserToken(trackId, accessToken)
+            .flatMap(this::createTrackFromJSON);
     }
 }

@@ -1,4 +1,4 @@
-INITIALIZE ALBUMS FOR TRACKS
+album id null for tracks in db
 
 add more endpoints for spotify
 

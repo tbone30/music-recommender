@@ -178,6 +178,65 @@ public class SpotifyIntegrationService {
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {}));
     }
 
+    // USER-SPECIFIC TRACK METHODS (using user's access token)
+    
+    public Mono<Map<String, Object>> getTrackWithUserToken(String trackId, String accessToken) {
+        return WebClient.create(spotifyProperties.getBaseUrl())
+            .get()
+            .uri("/tracks/{id}", trackId)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+            .retrieve()
+            .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {});
+    }
+
+    @SuppressWarnings("unchecked")
+    public Mono<List<Map<String, Object>>> getSeveralTracksWithUserToken(String ids, String accessToken) {
+        return WebClient.create(spotifyProperties.getBaseUrl())
+            .get()
+            .uri("/tracks?ids={ids}", ids)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+            .retrieve()
+            .bodyToMono(Map.class)
+            .map(response -> (List<Map<String, Object>>) response.get("tracks"));
+    }
+
+    public Mono<Map<String, Object>> getUserProfile(String accessToken) {
+        return WebClient.create(spotifyProperties.getBaseUrl())
+            .get()
+            .uri("/me")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+            .retrieve()
+            .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {});
+    }
+
+    public Mono<Map<String, Object>> getUserPlaylists(String accessToken) {
+        return WebClient.create(spotifyProperties.getBaseUrl())
+            .get()
+            .uri("/me/playlists")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+            .retrieve()
+            .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {});
+    }
+
+    public Mono<Map<String, Object>> getUserTopTracks(String accessToken) {
+        return WebClient.create(spotifyProperties.getBaseUrl())
+            .get()
+            .uri("/me/top/tracks")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+            .retrieve()
+            .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {});
+    }
+
+    public Mono<Map<String, Object>> getUserTopArtists(String accessToken) {
+        return WebClient.create(spotifyProperties.getBaseUrl())
+            .get()
+            .uri("/me/top/artists")
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+            .retrieve()
+            .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {});
+    }
+
+    @SuppressWarnings("unchecked")
     public Mono<List<Map<String, Object>>> getSeveralTracks(String ids) {
     return getValidToken()
         .flatMap(token -> spotifyWebClient.get()
