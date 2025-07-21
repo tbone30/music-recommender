@@ -5,32 +5,23 @@ import java.util.List;
 public class TrackDTO {
     private String id;
     private String name;
-    private int trackNumber;
-    private int durationMs;
+    private int duration;
     private boolean explicit;
     private int popularity;
-    private String previewUrl;
     private List<ArtistDTO> artists;
     private String href;
     private String uri;
+    private String albumId;
 
     // Constructors, getters, and setters
     public TrackDTO() {}
 
-    public int getTrackNumber() {
-        return trackNumber;
-    }
-
-    public void setTrackNumber(int trackNumber) {
-        this.trackNumber = trackNumber;
-    }
-
     public int getDurationMs() {
-        return durationMs;
+        return duration;
     }
 
     public void setDurationMs(int durationMs) {
-        this.durationMs = durationMs;
+        this.duration = durationMs;
     }
 
     public boolean isExplicit() {
@@ -47,14 +38,6 @@ public class TrackDTO {
 
     public void setPopularity(int popularity) {
         this.popularity = popularity;
-    }
-
-    public String getPreviewUrl() {
-        return previewUrl;
-    }
-
-    public void setPreviewUrl(String previewUrl) {
-        this.previewUrl = previewUrl;
     }
 
     public List<ArtistDTO> getArtists() {
@@ -84,7 +67,7 @@ public class TrackDTO {
     public String getId() { 
         return id; 
     }
-    
+
     public void setId(String id) { 
         this.id = id; 
     }
@@ -95,5 +78,13 @@ public class TrackDTO {
 
     public void setName(String name) { 
         this.name = name; 
+    }
+
+    public String getAlbumId() {
+        return albumId;
+    }
+
+    public void setAlbumId(String albumId) {
+        this.albumId = albumId;
     }
 }

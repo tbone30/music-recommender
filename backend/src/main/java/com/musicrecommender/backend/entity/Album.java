@@ -13,14 +13,14 @@ public class Album {
     private String id;
     private String name;
     private int totalTracks;
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "album_artists",
         joinColumns = @JoinColumn(name = "album_id"),
         inverseJoinColumns = @JoinColumn(name = "artist_id")
     )
     private List<Artist> artists;
-    @OneToMany(mappedBy = "album", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "albumId", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     private List<Track> tracks;
     private int popularity;
     private String href;

@@ -9,7 +9,9 @@ import org.springframework.context.annotation.Lazy;
 
 import com.musicrecommender.backend.entity.Track;
 import com.musicrecommender.backend.entity.Artist;
+import com.musicrecommender.backend.entity.Album;
 import com.musicrecommender.backend.service.ArtistService;
+import com.musicrecommender.backend.repository.TrackRepository;
 
 import reactor.core.publisher.Mono;
 
@@ -23,8 +25,11 @@ public class TrackFactory {
     @Autowired
     @Lazy
     private ArtistService artistService;
+    @Autowired
+    private TrackRepository trackRepository;
 
     public Mono<Track> createTrackFromJSON(Map<String, Object> trackData) {
+        // Create track object
         Track track = new Track();
         track.setDuration((Integer) trackData.get("duration_ms"));
         track.setExplicit((Boolean) trackData.get("explicit"));
@@ -33,15 +38,20 @@ public class TrackFactory {
         track.setName((String) trackData.get("name"));
         track.setUri((String) trackData.get("uri"));
         track.setPopularity((Integer) trackData.get("popularity"));
+        track.setAlbumId((String) ((Map<String, Object>) trackData.get("album")).get("id"));
 
+        // Get data for relationships
         List<Map<String, Object>> artistsData = (List<Map<String, Object>>) trackData.get("artists");
-        Mono<List<Artist>> artistsMono = 
-            artistsData != null ? artistService.createArtistListFromJSONSimple(artistsData) : Mono.just(List.<Artist>of());
+
+        // Load artists first
+        Mono<List<Artist>> artistsMono = artistsData != null ? 
+            artistService.createArtistListFromJSONSimple(artistsData) : 
+            Mono.just(List.<Artist>of());
 
         return artistsMono
-            .map(artists -> {
+            .flatMap(artists -> {
                 track.setArtists(artists);
-                return track;
+                return Mono.fromCallable(() -> trackRepository.save(track));
             });
     }
 }

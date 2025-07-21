@@ -11,7 +11,7 @@ public class Artist {
     private String name;
     private int followers;
     private int popularity;
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "artist_images", joinColumns = @JoinColumn(name = "artist_id"))
     private List<SpotifyImage> images; 
     private String uri;

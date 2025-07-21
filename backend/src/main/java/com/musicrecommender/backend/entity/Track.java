@@ -10,16 +10,14 @@ public class Track {
     @Id
     private String id;
     private String name;
-    @ManyToMany(fetch = FetchType.LAZY)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "track_artists",
         joinColumns = @JoinColumn(name = "track_id"),
         inverseJoinColumns = @JoinColumn(name = "artist_id")
     )
     private List<Artist> artists;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "album_id")
-    private Album album;
+    private String albumId;
     private String uri;
     private int duration; // Duration in milliseconds
     private boolean explicit;
@@ -30,11 +28,11 @@ public class Track {
         // Default constructor for JPA
     }
 
-    public Track(String id, String name, List<Artist> artists, Album album, String uri, int duration, boolean explicit, String href, int popularity) {
+    public Track(String id, String name, List<Artist> artists, String albumId, String uri, int duration, boolean explicit, String href, int popularity) {
         this.id = id;
         this.name = name;
         this.artists = artists;
-        this.album = album;
+        this.albumId = albumId;
         this.uri = uri;
         this.duration = duration;
         this.explicit = explicit;
@@ -54,8 +52,8 @@ public class Track {
         return artists;
     }
 
-    public Album getAlbum() {
-        return album;
+    public String getAlbumId() {
+        return albumId;
     }
 
     public String getUri() {
@@ -90,8 +88,8 @@ public class Track {
         this.artists = artists;
     }
 
-    public void setAlbum(Album album) {
-        this.album = album;
+    public void setAlbumId(String albumId) {
+        this.albumId = albumId;
     }
 
     public void setUri(String uri) {
@@ -120,7 +118,7 @@ public class Track {
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", artists=" + artists +
-                ", album=" + album +
+                ", albumId=" + albumId +
                 ", uri='" + uri + '\'' +
                 ", duration=" + duration +
                 ", explicit=" + explicit +
