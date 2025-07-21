@@ -1,4 +1,4 @@
-update get list functions to use get several functions
+INITIALIZE ALBUMS FOR TRACKS
 
 add more endpoints for spotify
 
