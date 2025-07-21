@@ -9,6 +9,7 @@ import com.musicrecommender.backend.service.DTOMapperService;
 import com.musicrecommender.backend.dto.AlbumDTO;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,6 +25,7 @@ import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("albums")
+@CrossOrigin(origins = "*")
 public class SpotifyAlbumController {
 
     private static final Logger logger = LoggerFactory.getLogger(SpotifyAlbumController.class);

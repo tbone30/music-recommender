@@ -1,14 +1,15 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User } from '../types';
-import apiService from '../services/api';
+import SpotifyAuthService, { SpotifyUser } from '../services/spotifyAuthService';
 
 interface AuthContextType {
-  user: User | null;
+  user: SpotifyUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (redirectTo?: string) => void;
+  login: () => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
+  spotifyAuthService: SpotifyAuthService;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -18,8 +19,9 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<SpotifyUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [spotifyAuthService] = useState(() => new SpotifyAuthService());
 
   const isAuthenticated = !!user;
 
@@ -30,42 +32,50 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const checkAuthStatus = async () => {
     try {
       setIsLoading(true);
-      const token = localStorage.getItem('spotify_discovery_token');
-      if (token) {
-        const response = await apiService.getCurrentUser();
-        setUser(response.data);
+      if (spotifyAuthService.isConnected()) {
+        const isValid = await spotifyAuthService.validateToken();
+        if (isValid) {
+          const userProfile = await spotifyAuthService.getUserProfile();
+          setUser(userProfile);
+        } else {
+          spotifyAuthService.disconnect();
+        }
       }
     } catch (error) {
       console.error('Auth check failed:', error);
-      localStorage.removeItem('spotify_discovery_token');
+      spotifyAuthService.disconnect();
     } finally {
       setIsLoading(false);
     }
   };
 
-  const login = (redirectTo?: string) => {
-    const url = redirectTo 
-      ? `/api/auth/spotify?redirect=${encodeURIComponent(redirectTo)}`
-      : '/api/auth/spotify';
-    window.location.href = url;
+  const login = async (): Promise<void> => {
+    try {
+      await spotifyAuthService.initiateSpotifyAuth();
+    } catch (error) {
+      console.error('Login failed:', error);
+      throw error;
+    }
   };
 
   const logout = async () => {
     try {
-      await apiService.logout();
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      localStorage.removeItem('spotify_discovery_token');
+      spotifyAuthService.disconnect();
       setUser(null);
       window.location.href = '/';
+    } catch (error) {
+      console.error('Logout error:', error);
     }
   };
 
   const refreshUser = async () => {
     try {
-      const response = await apiService.getCurrentUser();
-      setUser(response.data);
+      if (spotifyAuthService.isConnected()) {
+        const userProfile = await spotifyAuthService.getUserProfile();
+        setUser(userProfile);
+      } else {
+        setUser(null);
+      }
     } catch (error) {
       console.error('Failed to refresh user:', error);
       logout();
@@ -79,6 +89,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     logout,
     refreshUser,
+    spotifyAuthService,
   };
 
   return (

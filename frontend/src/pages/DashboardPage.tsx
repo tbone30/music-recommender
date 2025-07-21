@@ -8,7 +8,7 @@ const DashboardPage: React.FC = () => {
     <div className="container mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white mb-2">
-          Welcome back, {user?.displayName || 'Music Lover'}!
+          Welcome back, {user?.display_name || 'Music Lover'}!
         </h1>
         <p className="text-gray-400">
           Here's your personalized music discovery dashboard.

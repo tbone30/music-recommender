@@ -3,7 +3,6 @@ package com.musicrecommender.backend.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
 import com.musicrecommender.backend.config.SpotifyProperties;
 import com.musicrecommender.backend.dto.SpotifyTokenResponse;
 import java.util.Base64;
@@ -31,7 +30,7 @@ public class SpotifyAuthService {
                 "&state=" + state;
     }
     
-    public Mono<SpotifyTokenResponse> exchangeCodeForToken(String code) {
+    public SpotifyTokenResponse exchangeCodeForToken(String code) {
         String credentials = Base64.getEncoder()
             .encodeToString((spotifyProperties.getClientId() + ":" + spotifyProperties.getClientSecret()).getBytes());
         
@@ -45,10 +44,11 @@ public class SpotifyAuthService {
             .header("Content-Type", "application/x-www-form-urlencoded")
             .bodyValue(requestBody)
             .retrieve()
-            .bodyToMono(SpotifyTokenResponse.class);
+            .bodyToMono(SpotifyTokenResponse.class)
+            .block();
     }
     
-    public Mono<SpotifyTokenResponse> refreshToken(String refreshToken) {
+    public SpotifyTokenResponse refreshToken(String refreshToken) {
         String credentials = Base64.getEncoder()
             .encodeToString((spotifyProperties.getClientId() + ":" + spotifyProperties.getClientSecret()).getBytes());
         
@@ -60,14 +60,16 @@ public class SpotifyAuthService {
             .header("Content-Type", "application/x-www-form-urlencoded")
             .bodyValue(requestBody)
             .retrieve()
-            .bodyToMono(SpotifyTokenResponse.class);
+            .bodyToMono(SpotifyTokenResponse.class)
+            .block();
     }
     
-    public Mono<Map<String, Object>> validateToken(String accessToken) {
+    public Map<String, Object> validateToken(String accessToken) {
         return webClient.get()
             .uri(spotifyProperties.getBaseUrl() + "/me")
             .header("Authorization", "Bearer " + accessToken)
             .retrieve()
-            .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {});
+            .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {})
+            .block();
     }
 }
