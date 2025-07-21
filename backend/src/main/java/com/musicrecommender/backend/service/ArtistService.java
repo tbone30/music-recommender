@@ -32,7 +32,15 @@ public class ArtistService {
     private SpotifyIntegrationService spotifyIntegrationService;
 
     public Mono<Artist> getArtist(String id) {
-        return Mono.fromCallable(() -> artistRepository.findById(id).orElse(null));
+        return Mono.fromCallable(() -> artistRepository.findById(id).orElse(null))
+            .flatMap(artist -> {
+                if (artist != null) {
+                    return Mono.just(artist);
+                } else {
+                    return spotifyIntegrationService.getArtist(id)
+                        .flatMap(artistData -> createArtistFromJSON(artistData));
+                }
+            });
     }
 
     public Mono<List<Artist>> getSeveralArtists(String ids) {
@@ -100,7 +108,6 @@ public class ArtistService {
             .map(artist -> (String) artist.get("id"))
             .toList();
         String idsCommaSeparated = String.join(",", ids);
-        return spotifyIntegrationService.getSeveralArtists(idsCommaSeparated)
-                                        .flatMap(artists -> createArtistListFromJSON(artists));
+        return getSeveralArtists(idsCommaSeparated);
     }
 }

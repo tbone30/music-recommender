@@ -3,10 +3,15 @@ package com.musicrecommender.backend.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.context.annotation.Lazy;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import reactor.core.publisher.Mono;
 import reactor.core.publisher.Flux;
 
@@ -23,9 +28,15 @@ public class AlbumService {
     @Autowired
     @Lazy
     private SpotifyIntegrationService spotifyIntegrationService;
+    private static final Logger logger = LoggerFactory.getLogger(AlbumService.class);
 
     public Mono<Album> getAlbum(String id) {
-        return Mono.fromCallable(() -> albumRepository.findById(id).orElse(null));
+        logger.info("Fetching album with ID: {}", id);
+        logger.info("Album not found in repository, fetching from Spotify");
+        Mono<Album> result = spotifyIntegrationService.getAlbum(id)
+                .flatMap(albumData -> createAlbumFromJSON(albumData));
+        logger.info("Result: {}", result);
+        return result;
     }
 
     public Mono<List<Album>> getSeveralAlbums(String ids) {
@@ -38,6 +49,7 @@ public class AlbumService {
     }
 
     private Mono<Album> createAlbumFromJSON(Map<String, Object> albumData) {
+        logger.info("Creating album from JSON data: {}", albumData);
         String albumId = (String) albumData.get("id");
         
         Object tracksObject = albumData.get("tracks");

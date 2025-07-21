@@ -23,13 +23,6 @@ public class SpotifyIntegrationService {
     private final SpotifyProperties spotifyProperties;
     private Mono<String> cachedToken;
 
-    @Autowired
-    private AlbumService albumService;
-    @Autowired
-    private TrackService trackService;
-    @Autowired
-    private ArtistService artistService;
-
     private static final Logger logger = LoggerFactory.getLogger(SpotifyIntegrationService.class);
 
     @Autowired
@@ -119,11 +112,12 @@ public class SpotifyIntegrationService {
 
     public Mono<List<Map<String, Object>>> getSeveralAlbums(String ids) {
         return getValidToken()
-            .flatMap(token -> spotifyWebClient.get()
-                .uri("/albums?ids={ids}", ids)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {}));
+        .flatMap(token -> spotifyWebClient.get()
+            .uri("/albums?ids={ids}", ids)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+            .retrieve()
+            .bodyToMono(Map.class)
+            .map(response -> (List<Map<String, Object>>) response.get("albums")));
     }
 
     public Mono<List<Map<String, Object>>> fetchAllTracksForAlbum(Map<String, Object> initialTracks) {
@@ -143,11 +137,12 @@ public class SpotifyIntegrationService {
 
     public Mono<List<Map<String, Object>>> getSeveralArtists(String ids) {
         return getValidToken()
-            .flatMap(token -> spotifyWebClient.get()
-                .uri("/artists?ids={ids}", ids)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {}));
+        .flatMap(token -> spotifyWebClient.get()
+            .uri("/artists?ids={ids}", ids)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+            .retrieve()
+            .bodyToMono(Map.class)
+            .map(response -> (List<Map<String, Object>>) response.get("artists")));
     }
 
     public Mono<Map<String, Object>> getArtistAlbums(String artistId) {
@@ -184,11 +179,12 @@ public class SpotifyIntegrationService {
     }
 
     public Mono<List<Map<String, Object>>> getSeveralTracks(String ids) {
-        return getValidToken()
-            .flatMap(token -> spotifyWebClient.get()
-                .uri("/tracks?ids={ids}", ids)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .retrieve()
-                .bodyToMono(new ParameterizedTypeReference<List<Map<String, Object>>>() {}));
+    return getValidToken()
+        .flatMap(token -> spotifyWebClient.get()
+            .uri("/tracks?ids={ids}", ids)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+            .retrieve()
+            .bodyToMono(Map.class)
+            .map(response -> (List<Map<String, Object>>) response.get("tracks")));
     }
 }   

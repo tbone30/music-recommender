@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 
 import com.musicrecommender.backend.entity.Track;
+import com.musicrecommender.backend.entity.Artist;
 import com.musicrecommender.backend.service.ArtistService;
 
 import reactor.core.publisher.Mono;
@@ -33,18 +34,13 @@ public class TrackFactory {
         track.setUri((String) trackData.get("uri"));
         track.setPopularity((Integer) trackData.get("popularity"));
 
-        Map<String, Object> albumData = (Map<String, Object>) trackData.get("album");
-        Mono<com.musicrecommender.backend.entity.Album> albumMono = 
-            albumData != null ? albumService.createAlbumFromJSONSimple(albumData) : Mono.empty();
-
         List<Map<String, Object>> artistsData = (List<Map<String, Object>>) trackData.get("artists");
-        Mono<List<com.musicrecommender.backend.entity.Artist>> artistsMono = 
-            artistsData != null ? artistService.createArtistListFromJSONSimple(artistsData) : Mono.just(List.of());
+        Mono<List<Artist>> artistsMono = 
+            artistsData != null ? artistService.createArtistListFromJSONSimple(artistsData) : Mono.just(List.<Artist>of());
 
-        return Mono.zip(albumMono, artistsMono)
-            .map(tuple -> {
-                track.setAlbum(tuple.getT1());
-                track.setArtists(tuple.getT2());
+        return artistsMono
+            .map(artists -> {
+                track.setArtists(artists);
                 return track;
             });
     }

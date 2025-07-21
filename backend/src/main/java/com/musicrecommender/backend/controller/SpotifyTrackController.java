@@ -15,7 +15,7 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/tracks")
+@RequestMapping("tracks")
 public class SpotifyTrackController {
 
     @Autowired

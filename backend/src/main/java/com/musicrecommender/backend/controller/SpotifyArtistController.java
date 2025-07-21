@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/spotify/artists")
+@RequestMapping("artists")
 // @CrossOrigin(origins = "http://localhost:3000")
 public class SpotifyArtistController {
     @Autowired

@@ -26,7 +26,15 @@ public class TrackService {
     private SpotifyIntegrationService spotifyIntegrationService;
 
     public Mono<Track> getTrack(String id) {
-        return Mono.fromCallable(() -> trackRepository.findById(id).orElse(null));
+        return Mono.fromCallable(() -> trackRepository.findById(id).orElse(null))
+            .flatMap(track -> {
+                if (track != null) {
+                    return Mono.just(track);
+                } else {
+                    return spotifyIntegrationService.getTrack(id)
+                        .flatMap(trackData -> createTrackFromJSON(trackData));
+                }
+            });
     }
 
     public Mono<List<Track>> getSeveralTracks(String ids) {
@@ -71,8 +79,10 @@ public class TrackService {
     }
 
     public Mono<List<Track>> createTrackListFromJSONSimple(List<Map<String, Object>> tracksData) {
-        return Flux.fromIterable(tracksData)
-            .flatMap(this::createTrackFromJSONSimple)
-            .collectList();
+        List<String> ids = tracksData.stream()
+            .map(track -> (String) track.get("id"))
+            .toList();
+        String idsCommaSeparated = String.join(",", ids);
+        return getSeveralTracks(idsCommaSeparated);
     }
 }
