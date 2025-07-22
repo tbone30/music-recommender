@@ -1,10 +1,6 @@
 package com.musicrecommender.backend.entity;
 import jakarta.persistence.*;
 import java.util.List;
-import java.util.Map;
-import com.musicrecommender.backend.entity.Artist;
-import com.musicrecommender.backend.entity.Track;
-import com.musicrecommender.backend.entity.SpotifyImage;
 
 @Entity
 @Table(name = "albums")
