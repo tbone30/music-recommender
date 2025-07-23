@@ -14,7 +14,7 @@ public class SimplifiedPlaylistDTO {
     private String ownerId;
     private String ownerDisplayName;
     private int isPublic;
-    private int uri;
+    private String uri;
 
     public boolean isCollaborative() {
         return collaborative;
@@ -92,7 +92,7 @@ public class SimplifiedPlaylistDTO {
         return uri;
     }
 
-    public void setUri(int uri) {
+    public void setUri(String uri) {
         this.uri = uri;
     }
 }

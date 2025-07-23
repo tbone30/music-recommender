@@ -194,26 +194,6 @@ public class SpotifyIntegrationService {
     }
 
     // USER-SPECIFIC TRACK METHODS (using user's access token)
-    
-    public Mono<Map<String, Object>> getTrackWithUserToken(String trackId, String accessToken) {
-        return WebClient.create(spotifyProperties.getBaseUrl())
-            .get()
-            .uri("/tracks/{id}", trackId)
-            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
-            .retrieve()
-            .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {});
-    }
-
-    @SuppressWarnings("unchecked")
-    public Mono<List<Map<String, Object>>> getSeveralTracksWithUserToken(String ids, String accessToken) {
-        return WebClient.create(spotifyProperties.getBaseUrl())
-            .get()
-            .uri("/tracks?ids={ids}", ids)
-            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
-            .retrieve()
-            .bodyToMono(Map.class)
-            .map(response -> (List<Map<String, Object>>) response.get("tracks"));
-    }
 
     public Mono<Map<String, Object>> getUserProfile(String accessToken) {
         return WebClient.create(spotifyProperties.getBaseUrl())

@@ -59,16 +59,4 @@ public class TrackFactory {
                 return Mono.fromCallable(() -> trackRepository.save(track));
             });
     }
-    
-    // Create track from Spotify using client credentials (public data)
-    public Mono<Track> createTrackFromSpotifyId(String trackId) {
-        return spotifyIntegrationService.getTrack(trackId)
-            .flatMap(this::createTrackFromJSON);
-    }
-    
-    // Create track from Spotify using user's access token (personal data)
-    public Mono<Track> createTrackFromSpotifyWithUserToken(String trackId, String accessToken) {
-        return spotifyIntegrationService.getTrackWithUserToken(trackId, accessToken)
-            .flatMap(this::createTrackFromJSON);
-    }
 }

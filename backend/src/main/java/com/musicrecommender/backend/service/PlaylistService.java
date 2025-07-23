@@ -9,9 +9,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import com.musicrecommender.backend.entity.Album;
 import com.musicrecommender.backend.entity.Playlist;
+import com.musicrecommender.backend.entity.SpotifyImage;
 import com.musicrecommender.backend.factory.PlaylistFactory;
 import com.musicrecommender.backend.repository.PlaylistRepository;
 import com.musicrecommender.backend.service.SpotifyIntegrationService;
+import com.musicrecommender.backend.dto.PlaylistListPageDTO;
+import com.musicrecommender.backend.dto.SpotifyImageDTO;
+import com.musicrecommender.backend.dto.simplified.SimplifiedPlaylistDTO;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
@@ -85,6 +89,43 @@ public class PlaylistService {
                     return spotifyIntegrationService.getPlaylist(playlistId)
                                                     .flatMap(playlist -> createPlaylistFromJSON(playlist));
                 }
+            });
+    }
+
+    public Mono<PlaylistListPageDTO> getCurrentUserPlaylists(String accessToken) {
+        return spotifyIntegrationService.getUserPlaylists(accessToken)
+            .map(playlistData -> {
+                PlaylistListPageDTO playlistListPageDTO = new PlaylistListPageDTO();
+                playlistListPageDTO.setHref((String) playlistData.get("href"));
+                playlistListPageDTO.setLimit((Integer) playlistData.get("limit"));
+                playlistListPageDTO.setNext((String) playlistData.get("next"));
+                playlistListPageDTO.setOffset((Integer) playlistData.get("offset"));
+                playlistListPageDTO.setPrevious((String) playlistData.get("previous"));
+                playlistListPageDTO.setTotal((Integer) playlistData.get("total"));
+
+                List<Map<String, Object>> items = (List<Map<String, Object>>) playlistData.get("items");
+                List<SimplifiedPlaylistDTO> simplifiedPlaylists = items.stream()
+                    .map(item -> {
+                        SimplifiedPlaylistDTO simplifiedPlaylist = new SimplifiedPlaylistDTO();
+                        simplifiedPlaylist.setCollaborative((Boolean) item.get("collaborative"));
+                        simplifiedPlaylist.setDescription((String) item.get("description"));
+                        simplifiedPlaylist.setHref((String) item.get("href"));
+                        simplifiedPlaylist.setId((String) item.get("id"));
+                        simplifiedPlaylist.setName((String) item.get("name"));
+                        simplifiedPlaylist.setUri((String) item.get("uri"));
+                        simplifiedPlaylist.setOwnerId((String) ((Map<String, Object>) item.get("owner")).get("id"));
+                        simplifiedPlaylist.setOwnerDisplayName((String) ((Map<String, Object>) item.get("owner")).get("display_name"));
+
+                        List<Map<String, Object>> imagesData = (List<Map<String, Object>>) item.get("images");
+                        List<SpotifyImage> images = SpotifyImage.createSpotifyImageListFromJSON(imagesData);
+                        List<SpotifyImageDTO> imageDTOs = images.stream().map(image -> new SpotifyImageDTO(image)).toList();
+                        simplifiedPlaylist.setImages(imageDTOs);
+
+                        return simplifiedPlaylist;
+                    })
+                    .toList();
+
+                return playlistListPageDTO;
             });
     }
 }
