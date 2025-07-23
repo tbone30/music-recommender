@@ -14,7 +14,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("artists")
 @CrossOrigin(origins = "*")
-public class SpotifyArtistController {
+public class ArtistController {
     @Autowired
     private ArtistService artistService;
 

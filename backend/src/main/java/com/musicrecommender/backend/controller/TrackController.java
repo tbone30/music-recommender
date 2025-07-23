@@ -18,7 +18,7 @@ import java.util.List;
 @RestController
 @RequestMapping("tracks")
 @CrossOrigin(origins = "*")
-public class SpotifyTrackController {
+public class TrackController {
 
     @Autowired
     private TrackService trackService;

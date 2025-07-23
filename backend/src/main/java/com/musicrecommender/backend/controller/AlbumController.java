@@ -26,9 +26,9 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping("albums")
 @CrossOrigin(origins = "*")
-public class SpotifyAlbumController {
+public class AlbumController {
 
-    private static final Logger logger = LoggerFactory.getLogger(SpotifyAlbumController.class);
+    private static final Logger logger = LoggerFactory.getLogger(AlbumController.class);
 
     @Autowired
     private AlbumService albumService;
