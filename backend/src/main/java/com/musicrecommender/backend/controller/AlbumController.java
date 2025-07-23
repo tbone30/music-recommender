@@ -5,7 +5,6 @@ import java.util.stream.Collectors;
 
 import com.musicrecommender.backend.entity.Album;
 import com.musicrecommender.backend.service.AlbumService;
-import com.musicrecommender.backend.service.DTOMapperService;
 import com.musicrecommender.backend.dto.AlbumDTO;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,14 +32,11 @@ public class AlbumController {
     @Autowired
     private AlbumService albumService;
 
-    @Autowired
-    private DTOMapperService dtoMapperService;
-
     @GetMapping("/{id}")
     public Mono<ResponseEntity<AlbumDTO>> getAlbum(@PathVariable String id) {
         return albumService.getAlbum(id)
             .map(album -> {
-                AlbumDTO albumDTO = dtoMapperService.albumToDTO(album);
+                AlbumDTO albumDTO = new AlbumDTO(album);
                 return ResponseEntity.ok(albumDTO);
             })
             .switchIfEmpty(Mono.fromSupplier(() -> {
@@ -53,7 +49,7 @@ public class AlbumController {
     public Mono<List<AlbumDTO>> getSeveralAlbums(@RequestParam String ids) {
         return albumService.getSeveralAlbums(ids)
             .map(albums -> albums.stream()
-                .map(dtoMapperService::albumToDTO)
+                .map(AlbumDTO::new)
                 .collect(Collectors.toList()));
     }
 }

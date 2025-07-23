@@ -88,7 +88,7 @@ public class SimplifiedPlaylistDTO {
         this.isPublic = isPublic;
     }
 
-    public int getUri() {
+    public String getUri() {
         return uri;
     }
 

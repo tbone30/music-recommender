@@ -1,6 +1,9 @@
 package com.musicrecommender.backend.dto;
 
 import java.util.List;
+import java.util.stream.Collectors;
+
+import com.musicrecommender.backend.entity.Album;
 
 public class AlbumDTO {
     private String id;
@@ -36,6 +39,38 @@ public class AlbumDTO {
         this.images = images;
         this.albumType = albumType;
         this.uri = uri;
+    }
+
+    public AlbumDTO(Album album) {
+        if (album == null) return;
+
+        this.id = album.getId();
+        this.name = album.getName();
+        this.totalTracks = album.getTotalTracks();
+        this.popularity = album.getPopularity();
+        this.href = album.getHref();
+        this.releaseDate = album.getReleaseDate();
+        this.releaseDatePrecision = album.getReleaseDatePrecision();
+        this.albumType = album.getAlbumType();
+        this.uri = album.getUri();
+
+        if (album.getArtists() != null) {
+            this.artists = album.getArtists().stream()
+                .map(ArtistDTO::new)
+                .collect(Collectors.toList());
+        }
+
+        if (album.getTracks() != null) {
+            this.tracks = album.getTracks().stream()
+                .map(TrackDTO::new)
+                .collect(Collectors.toList());
+        }
+
+        if (album.getImages() != null) {
+            this.images = album.getImages().stream()
+                .map(SpotifyImageDTO::new)
+                .collect(Collectors.toList());
+        }
     }
 
     // Getters and setters

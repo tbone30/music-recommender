@@ -1,5 +1,7 @@
 package com.musicrecommender.backend.dto;
 
+import com.musicrecommender.backend.entity.SpotifyImage;
+
 public class SpotifyImageDTO {
     private String url;
     private Integer height;
@@ -11,6 +13,12 @@ public class SpotifyImageDTO {
         this.url = url;
         this.height = height;
         this.width = width;
+    }
+
+    public SpotifyImageDTO (SpotifyImage image) {
+        this.url = image.getUrl();
+        this.height = image.getHeight();
+        this.width = image.getWidth();
     }
 
     public String getUrl() { return url; }
