@@ -17,7 +17,8 @@ public class Playlist {
     private String name;
     private String ownerId;
     private String ownerDisplayName;
-    private String isPublic;
+    private Boolean isPublic;
+    // Could change these to PlaylistTrack at a later point if I need metadata on track added
     @OneToMany
     private List<Track> tracks;
     private String uri;
@@ -90,11 +91,11 @@ public class Playlist {
         this.ownerDisplayName = ownerDisplayName;
     }
 
-    public String getIsPublic() {
+    public Boolean getIsPublic() {
         return isPublic;
     }
 
-    public void setIsPublic(String isPublic) {
+    public void setIsPublic(Boolean isPublic) {
         this.isPublic = isPublic;
     }
 

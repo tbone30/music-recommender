@@ -23,8 +23,8 @@ public class SpotifyImage {
 
     public SpotifyImage(Map<String, Object> imageData) {
         this.url = (String) imageData.get("url");
-        this.width = (Integer) imageData.get("width");
-        this.height = (Integer) imageData.get("height");
+        this.width = imageData.get("width") instanceof Integer ? (Integer) imageData.get("width") : -1;
+        this.height = imageData.get("height") instanceof Integer ? (Integer) imageData.get("height") : -1;
     }
 
     public static List<SpotifyImage> createSpotifyImageListFromJSON(List<Map<String, Object>> images) {
