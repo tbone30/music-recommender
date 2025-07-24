@@ -1,155 +1,99 @@
-import axios, { AxiosInstance, AxiosResponse, AxiosError, InternalAxiosRequestConfig } from 'axios';
-import { 
-  ApiResponse, 
-  PaginatedResponse, 
-  User, 
-  Track, 
-  Playlist, 
-  UserTrack,
-  RecommendationRequest,
-  RecommendationResponse,
-  SearchFilters,
-  SearchResult
-} from '../types';
+// Simplified API service for stateless Spotify auth
+import SpotifyAuthService from './spotifyAuthService';
 
-/**
- * API Service for Spotify Discovery Platform
- * 
- * Centralized service for all API communications with the backend.
- * Handles authentication, error handling, and request/response formatting.
- */
+interface UserData {
+  id: number;
+  username: string;
+  email: string;
+  createdAt: string;
+}
+
+interface UserRegistration {
+  username: string;
+  email: string;
+  password: string;
+}
+
+interface UserLogin {
+  username: string;
+  password: string;
+}
+
 class ApiService {
-  private api: AxiosInstance;
   private baseURL: string;
+  private spotifyAuth: SpotifyAuthService;
 
   constructor() {
     this.baseURL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api';
-    
-    this.api = axios.create({
-      baseURL: this.baseURL,
-      timeout: parseInt(process.env.REACT_APP_API_TIMEOUT || '10000'),
-      headers: {
-        'Content-Type': 'application/json',
-      },
+    this.spotifyAuth = new SpotifyAuthService(this.baseURL);
+  }
+
+  // User Management APIs
+  async registerUser(userData: UserRegistration): Promise<any> {
+    const response = await fetch(`${this.baseURL}/users/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(userData)
     });
-
-    this.setupInterceptors();
+    return response.json();
   }
 
-  /**
-   * Setup request and response interceptors
-   */
-  private setupInterceptors(): void {
-    // Request interceptor - Add auth token
-    this.api.interceptors.request.use(
-      (config: InternalAxiosRequestConfig) => {
-        const token = localStorage.getItem('spotify_discovery_token');
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-      },
-      (error: AxiosError) => Promise.reject(error)
-    );
-
-    // Response interceptor - Handle errors globally
-    this.api.interceptors.response.use(
-      (response: AxiosResponse) => response,
-      (error: AxiosError) => {
-        if (error.response?.status === 401) {
-          // Token expired or invalid
-          localStorage.removeItem('spotify_discovery_token');
-          localStorage.removeItem('spotify_discovery_user');
-          window.location.href = '/login';
-        }
-        return Promise.reject(error);
-      }
-    );
+  async loginUser(credentials: UserLogin): Promise<any> {
+    const response = await fetch(`${this.baseURL}/users/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(credentials)
+    });
+    return response.json();
   }
 
-  /**
-   * Generic request handler
-   */
-  private async request<T>(
-    method: string,
-    url: string,
-    data?: any,
-    params?: any
-  ): Promise<ApiResponse<T>> {
-    try {
-      const response = await this.api.request<ApiResponse<T>>({
-        method,
-        url,
-        data,
-        params,
-      });
-      return response.data;
-    } catch (error) {
-      console.error(`API Error [${method.toUpperCase()} ${url}]:`, error);
-      throw this.handleError(error as AxiosError);
-    }
+  async getUser(userId: number): Promise<any> {
+    const response = await fetch(`${this.baseURL}/users/${userId}`);
+    return response.json();
   }
 
-  /**
-   * Error handler
-   */
-  private handleError(error: AxiosError): Error {
-    if (error.response) {
-      const message = (error.response.data as any)?.message || 'Server error occurred';
-      return new Error(message);
-    } else if (error.request) {
-      return new Error('Network error - please check your connection');
-    } else {
-      return new Error('Request configuration error');
-    }
+  // Spotify-authenticated endpoints
+  async getUserSpotifyProfile(): Promise<any> {
+    return this.spotifyAuth.getUserProfile();
   }
 
-  //remove below
-
-
-  // Authentication Endpoints
-  async login(email: string, password: string): Promise<ApiResponse<{ user: User; token: string }>> {
-    return this.request('POST', '/auth/login', { email, password });
+  async getUserPlaylists(): Promise<any> {
+    return this.spotifyAuth.getUserPlaylists();
   }
 
-  async spotifyAuth(code: string): Promise<ApiResponse<{ user: User; token: string }>> {
-    return this.request('POST', '/auth/spotify/callback', { code });
+  async getUserTopTracks(): Promise<any> {
+    return this.spotifyAuth.getUserTopTracks();
   }
 
-  async refreshToken(): Promise<ApiResponse<{ token: string }>> {
-    return this.request('POST', '/auth/refresh');
+  async makeAuthenticatedSpotifyRequest(endpoint: string, options: RequestInit = {}): Promise<Response> {
+    return this.spotifyAuth.makeAuthenticatedRequest(endpoint, options);
   }
 
-  async logout(): Promise<ApiResponse<void>> {
-    return this.request('POST', '/auth/logout');
+  // Public Spotify endpoints (no auth required)
+  async getPublicTrack(trackId: string): Promise<any> {
+    const response = await fetch(`${this.baseURL}/spotify/public/tracks/${trackId}`);
+    return response.json();
   }
 
-  async getCurrentUser(): Promise<ApiResponse<User>> {
-    return this.request('GET', '/auth/me');
+  async getPublicArtist(artistId: string): Promise<any> {
+    const response = await fetch(`${this.baseURL}/spotify/public/artists/${artistId}`);
+    return response.json();
   }
 
-  // User Endpoints
-  async getUser(id: number): Promise<ApiResponse<User>> {
-    return this.request('GET', `/users/${id}`);
+  async getPublicAlbum(albumId: string): Promise<any> {
+    const response = await fetch(`${this.baseURL}/spotify/public/albums/${albumId}`);
+    return response.json();
   }
 
-  async updateUser(id: number, userData: Partial<User>): Promise<ApiResponse<User>> {
-    return this.request('PUT', `/users/${id}`, userData);
+  // Utility methods
+  isSpotifyConnected(): boolean {
+    return this.spotifyAuth.isConnected();
   }
 
-  async getUserPreferences(id: number): Promise<ApiResponse<any>> {
-    return this.request('GET', `/users/${id}/preferences`);
-  }
-
-  async updateUserPreferences(id: number, preferences: any): Promise<ApiResponse<any>> {
-    return this.request('PUT', `/users/${id}/preferences`, preferences);
-  }
-
-  async getUserStats(id: number): Promise<ApiResponse<any>> {
-    return this.request('GET', `/users/${id}/stats`);
+  disconnectSpotify(): void {
+    this.spotifyAuth.disconnect();
   }
 }
 
-// Create and export a singleton instance
-const apiService = new ApiService();
-export default apiService;
+export default ApiService;
+export type { UserData, UserRegistration, UserLogin };

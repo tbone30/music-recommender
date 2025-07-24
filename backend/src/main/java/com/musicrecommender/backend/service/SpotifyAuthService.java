@@ -20,7 +20,7 @@ public class SpotifyAuthService {
     private WebClient webClient;
     
     public String generateAuthUrl(String state) {
-        String scopes = "user-read-private user-read-email playlist-read-private user-top-read user-library-read";
+        String scopes = "ugc-image-upload user-read-playback-state user-modify-playback-state user-read-currently-playing app-remote-control streaming playlist-read-private playlist-read-collaborative playlist-modify-private playlist-modify-public user-follow-modify user-follow-read user-read-playback-position user-top-read user-read-recently-played user-library-modify user-library-read user-read-email user-read-private";
         
         return spotifyProperties.getAccountsUrl() + "/authorize?" +
                 "response_type=code" +

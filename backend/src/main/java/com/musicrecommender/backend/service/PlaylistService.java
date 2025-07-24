@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.musicrecommender.backend.entity.Album;
 import com.musicrecommender.backend.entity.Playlist;
@@ -28,6 +30,7 @@ public class PlaylistService {
     private PlaylistFactory playlistFactory;
     @Autowired
     private SpotifyIntegrationService spotifyIntegrationService;
+    private static final Logger logger = LoggerFactory.getLogger(PlaylistService.class);
 
     public Mono<Playlist> getPlaylist(String id) {
         Mono<Playlist> result = spotifyIntegrationService.getPlaylist(id)
@@ -124,6 +127,7 @@ public class PlaylistService {
                         return simplifiedPlaylist;
                     })
                     .toList();
+                playlistListPageDTO.setItems(simplifiedPlaylists);
 
                 return playlistListPageDTO;
             });

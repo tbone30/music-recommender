@@ -108,7 +108,7 @@ class SpotifyAuthService {
   async makeAuthenticatedRequest(endpoint: string, options: RequestInit = {}): Promise<Response> {
     const accessToken = await this.getValidAccessToken();
     
-    return fetch(`${this.apiBaseUrl}/spotify${endpoint}`, {
+    return fetch(`${this.apiBaseUrl}${endpoint}`, {
       ...options,
       headers: {
         ...options.headers,

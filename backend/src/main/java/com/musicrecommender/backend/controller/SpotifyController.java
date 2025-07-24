@@ -31,21 +31,4 @@ public class SpotifyController {
                             token.substring(0, Math.min(token.length(), 20)) + "...")
             .onErrorReturn("Failed to connect to Spotify API");
     }
-
-    @GetMapping("/me")
-    public Mono<ResponseEntity<Map<String, Object>>> getUserProfile(
-            @RequestHeader("Authorization") String authHeader) {
-        String accessToken = extractAccessToken(authHeader);
-        
-        return spotifyService.getUserProfile(accessToken)
-            .map(ResponseEntity::ok)
-            .onErrorReturn(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
-    }
-    
-    private String extractAccessToken(String authHeader) {
-        if (authHeader != null && authHeader.startsWith("Bearer ")) {
-            return authHeader.substring(7);
-        }
-        throw new IllegalArgumentException("Invalid authorization header");
-    }
 }
