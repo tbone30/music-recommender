@@ -36,6 +36,8 @@ export interface TrackDTO {
   href: string;
   uri: string;
   albumId: string;
+  images: { url: string }[];
+  albumName: string;
 }
 
 export interface PlaylistDTO {
