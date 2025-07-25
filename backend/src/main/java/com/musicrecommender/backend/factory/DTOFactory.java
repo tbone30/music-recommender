@@ -34,8 +34,8 @@ public class DTOFactory {
     @Lazy
     private SpotifyIntegrationService spotifyIntegrationService;
 
-    public AlbumDTO createAlbumDTO(Album album) {
-        if (album == null) return null;
+    public Mono<AlbumDTO> createAlbumDTO(Album album) {
+        if (album == null) return Mono.empty();
 
         AlbumDTO albumDTO = new AlbumDTO();
         albumDTO.setId(album.getId());
@@ -48,18 +48,25 @@ public class DTOFactory {
         albumDTO.setAlbumType(album.getAlbumType());
         albumDTO.setUri(album.getUri());
 
+        Mono<List<ArtistDTO>> artistsMono;
         if (album.getArtists() != null) {
-            albumDTO.setArtists(album.getArtists().stream()
-                .map(artist ->  createArtistDTO(artist))
-                .collect(Collectors.toList()));
+            artistsMono = reactor.core.publisher.Flux.fromIterable(album.getArtists())
+                .flatMap(this::createArtistDTO)
+                .collectList();
+        } else {
+            artistsMono = Mono.just(List.of());
         }
 
+        Mono<List<TrackDTO>> tracksMono;
         if (album.getTracks() != null) {
-            albumDTO.setTracks(album.getTracks().stream()
-                .map(track -> createTrackDTO(track, album.getImages().stream()
-                    .map(SpotifyImageDTO::new)
-                    .collect(Collectors.toList()), album.getName()))
-                .collect(Collectors.toList()));
+            tracksMono = reactor.core.publisher.Flux.fromIterable(album.getTracks())
+                .flatMap(track -> {
+                    List<SpotifyImageDTO> images = album.getImages() != null ? album.getImages().stream().map(SpotifyImageDTO::new).collect(Collectors.toList()) : List.of();
+                    return createTrackDTO(track, images, album.getName());
+                })
+                .collectList();
+        } else {
+            tracksMono = Mono.just(List.of());
         }
 
         if (album.getImages() != null) {
@@ -68,11 +75,18 @@ public class DTOFactory {
                 .collect(Collectors.toList()));
         }
 
-        return albumDTO;
+        return artistsMono.zipWith(tracksMono)
+            .map(tuple -> {
+                List<ArtistDTO> artistDTOs = tuple.getT1();
+                List<TrackDTO> trackDTOs = tuple.getT2();
+                albumDTO.setArtists(artistDTOs);
+                albumDTO.setTracks(trackDTOs);
+                return albumDTO;
+            });
     }
 
-    public ArtistDTO createArtistDTO(Artist artist) {
-        if (artist == null) return null;
+    public Mono<ArtistDTO> createArtistDTO(Artist artist) {
+        if (artist == null) return Mono.empty();
 
         ArtistDTO artistDTO = new ArtistDTO();
         artistDTO.setId(artist.getId());
@@ -87,11 +101,11 @@ public class DTOFactory {
                 .collect(Collectors.toList()));
         }
 
-        return artistDTO;
+        return Mono.just(artistDTO);
     }
 
-    public TrackDTO createTrackDTO(Track track) {
-        if (track == null) return null;
+    public Mono<TrackDTO> createTrackDTO(Track track) {
+        if (track == null) return Mono.empty();
 
         TrackDTO trackDTO = new TrackDTO();
         trackDTO.setId(track.getId());
@@ -102,32 +116,37 @@ public class DTOFactory {
         trackDTO.setExplicit(track.isExplicit());
         trackDTO.setPopularity(track.getPopularity());
 
+        Mono<List<ArtistDTO>> artistsMono;
         if (track.getArtists() != null) {
-            trackDTO.setArtists(track.getArtists().stream()
-                .map(this::createArtistDTO)
-                .collect(Collectors.toList()));
+            artistsMono = reactor.core.publisher.Flux.fromIterable(track.getArtists())
+                .flatMap(this::createArtistDTO)
+                .collectList();
+        } else {
+            artistsMono = Mono.just(List.of());
         }
 
-        Mono<Album> albumMono = albumService.getAlbum(track.getAlbumId());
-        albumMono.subscribe(album -> {
-            if (album != null) {
-                trackDTO.setAlbumId(album.getId());
-                trackDTO.setAlbumImages(album.getImages().stream()
-                    .map(SpotifyImageDTO::new)
-                    .collect(Collectors.toList()));
-                trackDTO.setAlbumName(album.getName());
-            } else {
-                trackDTO.setAlbumId(null);
-                trackDTO.setAlbumImages(List.of());
-                trackDTO.setAlbumName(null);
-            }
+        return artistsMono.flatMap(artistDTOs -> {
+            trackDTO.setArtists(artistDTOs);
+            return albumService.getAlbum(track.getAlbumId())
+                .map(album -> {
+                    if (album != null) {
+                        trackDTO.setAlbumId(album.getId());
+                        trackDTO.setAlbumImages(album.getImages().stream()
+                            .map(SpotifyImageDTO::new)
+                            .collect(Collectors.toList()));
+                        trackDTO.setAlbumName(album.getName());
+                    } else {
+                        trackDTO.setAlbumId(null);
+                        trackDTO.setAlbumImages(List.of());
+                        trackDTO.setAlbumName(null);
+                    }
+                    return trackDTO;
+                });
         });
-
-        return trackDTO;
     }
 
-    public TrackDTO createTrackDTO(Track track, List<SpotifyImageDTO> albumImages, String albumName) {
-        if (track == null) return null;
+    public Mono<TrackDTO> createTrackDTO(Track track, List<SpotifyImageDTO> albumImages, String albumName) {
+        if (track == null) return Mono.empty();
 
         TrackDTO trackDTO = new TrackDTO();
         trackDTO.setId(track.getId());
@@ -138,19 +157,25 @@ public class DTOFactory {
         trackDTO.setExplicit(track.isExplicit());
         trackDTO.setPopularity(track.getPopularity());
 
+        Mono<List<ArtistDTO>> artistsMono;
         if (track.getArtists() != null) {
-            trackDTO.setArtists(track.getArtists().stream()
-                .map(this::createArtistDTO)
-                .collect(Collectors.toList()));
+            artistsMono = reactor.core.publisher.Flux.fromIterable(track.getArtists())
+                .flatMap(this::createArtistDTO)
+                .collectList();
+        } else {
+            artistsMono = Mono.just(List.of());
         }
 
-        trackDTO.setAlbumImages(albumImages);
-        trackDTO.setAlbumName(albumName);
-        return trackDTO;
+        return artistsMono.map(artistDTOs -> {
+            trackDTO.setArtists(artistDTOs);
+            trackDTO.setAlbumImages(albumImages);
+            trackDTO.setAlbumName(albumName);
+            return trackDTO;
+        });
     }
 
-    public PlaylistDTO createPlaylistDTO(Playlist playlist) {
-        if (playlist == null) return null;
+    public Mono<PlaylistDTO> createPlaylistDTO(Playlist playlist) {
+        if (playlist == null) return Mono.empty();
 
         PlaylistDTO playlistDTO = new PlaylistDTO();
         playlistDTO.setCollaborative(playlist.getCollaborative());
@@ -165,14 +190,42 @@ public class DTOFactory {
         playlistDTO.setOwnerDisplayName(playlist.getOwnerDisplayName());
         playlistDTO.setIsPublic(playlist.getIsPublic());
 
-        if (playlist.getTracks() != null) {
-            playlistDTO.setTracks(playlist.getTracks().stream()
-                .map(this::createTrackDTO)
-                .collect(Collectors.toList()));
+        if (playlist.getTracks() != null && !playlist.getTracks().isEmpty()) {
+            // 1. Collect unique album IDs
+            List<Track> tracks = playlist.getTracks();
+            List<String> albumIds = tracks.stream()
+                .map(Track::getAlbumId)
+                .filter(id -> id != null && !id.isEmpty())
+                .distinct()
+                .collect(Collectors.toList());
+
+            // 2. Batch fetch albums
+            String joinedIds = String.join(",", albumIds);
+            return albumService.getSeveralAlbums(joinedIds)
+                .flatMapMany(albums -> {
+                    // Map albumId -> Album
+                    java.util.Map<String, Album> albumMap = albums.stream()
+                        .collect(Collectors.toMap(Album::getId, a -> a));
+                    // 3. For each track, build TrackDTO using the album from the map
+                    return reactor.core.publisher.Flux.fromIterable(tracks)
+                        .flatMap(track -> {
+                            Album album = albumMap.get(track.getAlbumId());
+                            List<SpotifyImageDTO> albumImages = album != null && album.getImages() != null
+                                ? album.getImages().stream().map(SpotifyImageDTO::new).collect(Collectors.toList())
+                                : List.of();
+                            String albumName = album != null ? album.getName() : null;
+                            return createTrackDTO(track, albumImages, albumName);
+                        });
+                })
+                .collectList()
+                .map(trackDTOs -> {
+                    playlistDTO.setTracks(trackDTOs);
+                    playlistDTO.setUri(playlist.getUri());
+                    return playlistDTO;
+                });
+        } else {
+            playlistDTO.setUri(playlist.getUri());
+            return Mono.just(playlistDTO);
         }
-
-        playlistDTO.setUri(playlist.getUri());
-
-        return playlistDTO;
     }
 }

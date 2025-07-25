@@ -41,10 +41,7 @@ public class PlaylistController {
             playlistMono = playlistService.getPlaylist(id);
         }
         return playlistMono
-            .map(playlist -> {
-                PlaylistDTO playlistDTO = dtoFactory.createPlaylistDTO(playlist);
-                return playlistDTO;
-            })
+            .flatMap(dtoFactory::createPlaylistDTO)
             .switchIfEmpty(Mono.fromSupplier(() -> {
                 logger.error("Playlist with ID {} not found or not accessible", id);
                 return new PlaylistDTO();

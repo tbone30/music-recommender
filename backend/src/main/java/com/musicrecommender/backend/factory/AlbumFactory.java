@@ -43,13 +43,65 @@ public class AlbumFactory {
             artistsData != null ? artistService.createArtistListFromJSONSimple(artistsData) : Mono.just(List.of());
 
         List<Map<String, Object>> tracksData = (List<Map<String, Object>>) ((Map<String, Object>) albumData.get("tracks")).get("items");
-        Mono<List<Track>> tracksMono =
-            tracksData != null ? trackService.createTrackListFromJSONSimple(tracksData) : Mono.just(List.of());
+        if (tracksData == null || tracksData.isEmpty()) {
+            return artistsMono.map(artists -> {
+                album.setArtists(artists);
+                album.setTracks(List.of());
+                return album;
+            });
+        }
 
+        // 1. Collect all unique artist IDs from all tracks
+        java.util.Set<String> allArtistIds = new java.util.HashSet<>();
+        for (Map<String, Object> track : tracksData) {
+            List<Map<String, Object>> tArtists = (List<Map<String, Object>>) track.get("artists");
+            if (tArtists != null) {
+                for (Map<String, Object> a : tArtists) {
+                    String id = (String) a.get("id");
+                    if (id != null && !id.isEmpty()) allArtistIds.add(id);
+                }
+            }
+        }
+
+        // 2. Batch fetch all unique artists
+        String allArtistIdsCsv = String.join(",", allArtistIds);
+        Mono<List<Artist>> allArtistsMono = allArtistIds.isEmpty()
+            ? Mono.just(List.of())
+            : artistService.getSeveralArtists(allArtistIdsCsv);
+
+        // 3. For each track, build the list of Artist objects it needs
+        Mono<List<List<Artist>>> artistsForTracksMono = allArtistsMono.map(allArtists -> {
+            java.util.Map<String, Artist> artistMap = new java.util.HashMap<>();
+            for (Artist a : allArtists) {
+                artistMap.put(a.getId(), a);
+            }
+            List<List<Artist>> result = new java.util.ArrayList<>();
+            for (Map<String, Object> track : tracksData) {
+                List<Map<String, Object>> tArtists = (List<Map<String, Object>>) track.get("artists");
+                List<Artist> resolved = new java.util.ArrayList<>();
+                if (tArtists != null) {
+                    for (Map<String, Object> a : tArtists) {
+                        String id = (String) a.get("id");
+                        if (id != null && artistMap.containsKey(id)) {
+                            resolved.add(artistMap.get(id));
+                        }
+                    }
+                }
+                result.add(resolved);
+            }
+            return result;
+        });
+
+        // 4. Create tracks with resolved artist lists
+        Mono<List<Track>> tracksMono = artistsForTracksMono.flatMap(artistsForTracks ->
+            trackService.createTrackListFromJSONSimple(tracksData, artistsForTracks)
+        );
+
+        // 5. Zip album artists and tracks
         return Mono.zip(artistsMono, tracksMono)
             .map(tuple -> {
-                album.setArtists(tuple.getT1()); // Set artists
-                album.setTracks(tuple.getT2());  // Set tracks
+                album.setArtists(tuple.getT1()); // Set album-level artists
+                album.setTracks(tuple.getT2());  // Set tracks with resolved artists
                 return album;
             });
     }

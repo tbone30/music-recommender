@@ -59,4 +59,26 @@ public class TrackFactory {
                 return Mono.fromCallable(() -> trackRepository.save(track));
             });
     }
+
+    /**
+     * Overloaded version that accepts already-resolved artist entities, to avoid redundant lookups.
+     * @param trackData The track JSON data
+     * @param artists The list of Artist entities to associate with the track
+     * @return Mono<Track>
+     */
+    @SuppressWarnings("unchecked")
+    public Mono<Track> createTrackFromJSON(Map<String, Object> trackData, List<Artist> artists) {
+        Track track = new Track();
+        track.setDuration((Integer) trackData.get("duration_ms"));
+        track.setExplicit((Boolean) trackData.get("explicit"));
+        track.setHref((String) trackData.get("href"));
+        track.setId((String) trackData.get("id"));
+        track.setName((String) trackData.get("name"));
+        track.setUri((String) trackData.get("uri"));
+        track.setPopularity((Integer) trackData.get("popularity"));
+        track.setAlbumId((String) ((Map<String, Object>) trackData.get("album")).get("id"));
+
+        track.setArtists(artists != null ? artists : List.of());
+        return Mono.fromCallable(() -> trackRepository.save(track));
+    }
 }

@@ -38,10 +38,8 @@ public class AlbumController {
     @GetMapping("/{id}")
     public Mono<ResponseEntity<AlbumDTO>> getAlbum(@PathVariable String id) {
         return albumService.getAlbum(id)
-            .map(album -> {
-                AlbumDTO albumDTO = dtoFactory.createAlbumDTO(album);
-                return ResponseEntity.ok(albumDTO);
-            })
+            .flatMap(album -> dtoFactory.createAlbumDTO(album)
+                .map(albumDTO -> ResponseEntity.ok(albumDTO)))
             .switchIfEmpty(Mono.fromSupplier(() -> {
                 logger.error("Album with ID {} not found", id);
                 return ResponseEntity.notFound().<AlbumDTO>build();
@@ -51,8 +49,8 @@ public class AlbumController {
     @GetMapping
     public Mono<List<AlbumDTO>> getSeveralAlbums(@RequestParam String ids) {
         return albumService.getSeveralAlbums(ids)
-            .map(albums -> albums.stream()
-                .map(dtoFactory::createAlbumDTO)
-                .collect(Collectors.toList()));
+            .flatMapMany(albums -> reactor.core.publisher.Flux.fromIterable(albums))
+            .flatMap(dtoFactory::createAlbumDTO)
+            .collectList();
     }
 }
