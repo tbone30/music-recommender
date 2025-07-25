@@ -41,7 +41,25 @@ public class AlbumService {
     }
 
     public Mono<List<Album>> getSeveralAlbums(String ids) {
-        return spotifyIntegrationService.getSeveralAlbums(ids)
+        // Split ids into batches of 20
+        String[] idArray = ids.split(",");
+        int batchSize = 20;
+        List<List<String>> batches = new ArrayList<>();
+        for (int i = 0; i < idArray.length; i += batchSize) {
+            List<String> batch = new ArrayList<>();
+            for (int j = i; j < Math.min(i + batchSize, idArray.length); j++) {
+                batch.add(idArray[j]);
+            }
+            batches.add(batch);
+        }
+
+        return Flux.fromIterable(batches)
+            .flatMap(batch -> {
+                String joinedIds = String.join(",", batch);
+                return spotifyIntegrationService.getSeveralAlbums(joinedIds);
+            })
+            .collectList()
+            .map(listOfLists -> listOfLists.stream().flatMap(List::stream).toList())
             .flatMap(albums -> createAlbumListFromJSON(albums));
     }
 

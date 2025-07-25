@@ -40,7 +40,25 @@ public class TrackService {
     }
 
     public Mono<List<Track>> getSeveralTracks(String ids) {
-        return spotifyIntegrationService.getSeveralTracks(ids)
+        // Split ids into batches of 50
+        String[] idArray = ids.split(",");
+        int batchSize = 50;
+        List<List<String>> batches = new java.util.ArrayList<>();
+        for (int i = 0; i < idArray.length; i += batchSize) {
+            List<String> batch = new java.util.ArrayList<>();
+            for (int j = i; j < Math.min(i + batchSize, idArray.length); j++) {
+                batch.add(idArray[j]);
+            }
+            batches.add(batch);
+        }
+
+        return Flux.fromIterable(batches)
+            .flatMap(batch -> {
+                String joinedIds = String.join(",", batch);
+                return spotifyIntegrationService.getSeveralTracks(joinedIds);
+            })
+            .collectList()
+            .map(listOfLists -> listOfLists.stream().flatMap(List::stream).toList())
             .flatMap(tracks -> createTrackListFromJSON(tracks));
     }
 
