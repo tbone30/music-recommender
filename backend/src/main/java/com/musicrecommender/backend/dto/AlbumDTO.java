@@ -22,57 +22,6 @@ public class AlbumDTO {
     // Default constructor
     public AlbumDTO() {}
 
-    // Constructor
-    public AlbumDTO(String id, String name, int totalTracks, List<ArtistDTO> artists, 
-                   List<TrackDTO> tracks, int popularity, String href, String releaseDate,
-                   String releaseDatePrecision, List<SpotifyImageDTO> images, 
-                   String albumType, String uri) {
-        this.id = id;
-        this.name = name;
-        this.totalTracks = totalTracks;
-        this.artists = artists;
-        this.tracks = tracks;
-        this.popularity = popularity;
-        this.href = href;
-        this.releaseDate = releaseDate;
-        this.releaseDatePrecision = releaseDatePrecision;
-        this.images = images;
-        this.albumType = albumType;
-        this.uri = uri;
-    }
-
-    public AlbumDTO(Album album) {
-        if (album == null) return;
-
-        this.id = album.getId();
-        this.name = album.getName();
-        this.totalTracks = album.getTotalTracks();
-        this.popularity = album.getPopularity();
-        this.href = album.getHref();
-        this.releaseDate = album.getReleaseDate();
-        this.releaseDatePrecision = album.getReleaseDatePrecision();
-        this.albumType = album.getAlbumType();
-        this.uri = album.getUri();
-
-        if (album.getArtists() != null) {
-            this.artists = album.getArtists().stream()
-                .map(ArtistDTO::new)
-                .collect(Collectors.toList());
-        }
-
-        if (album.getTracks() != null) {
-            this.tracks = album.getTracks().stream()
-                .map(TrackDTO::new)
-                .collect(Collectors.toList());
-        }
-
-        if (album.getImages() != null) {
-            this.images = album.getImages().stream()
-                .map(SpotifyImageDTO::new)
-                .collect(Collectors.toList());
-        }
-    }
-
     // Getters and setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }

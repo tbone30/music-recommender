@@ -1,12 +1,14 @@
 package com.musicrecommender.backend.controller;
 
-import com.musicrecommender.backend.service.PlaylistService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
+
+import com.musicrecommender.backend.service.PlaylistService;
 import com.musicrecommender.backend.entity.Playlist;
 import com.musicrecommender.backend.dto.PlaylistDTO;
+import com.musicrecommender.backend.factory.DTOFactory;
 
 import java.util.List;
 import java.util.Map;
@@ -20,6 +22,8 @@ import org.slf4j.LoggerFactory;
 public class PlaylistController {
     @Autowired
     private PlaylistService playlistService;
+    @Autowired
+    private DTOFactory dtoFactory;
     private static final Logger logger = LoggerFactory.getLogger(PlaylistController.class);
 
     @GetMapping("/{id}")
@@ -37,7 +41,10 @@ public class PlaylistController {
             playlistMono = playlistService.getPlaylist(id);
         }
         return playlistMono
-            .map(playlist -> new PlaylistDTO(playlist))
+            .map(playlist -> {
+                PlaylistDTO playlistDTO = dtoFactory.createPlaylistDTO(playlist);
+                return playlistDTO;
+            })
             .switchIfEmpty(Mono.fromSupplier(() -> {
                 logger.error("Playlist with ID {} not found or not accessible", id);
                 return new PlaylistDTO();

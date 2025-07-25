@@ -11,7 +11,7 @@ public class PlaylistDTO {
     private String description;
     private String href;
     private String id;
-    private List<SpotifyImage> images;
+    private List<SpotifyImageDTO> images;
     private String name;
     private String ownerId;
     private String ownerDisplayName;
@@ -21,23 +21,6 @@ public class PlaylistDTO {
 
     public PlaylistDTO() {
         // Default constructor
-    }
-
-    public PlaylistDTO(Playlist playlist) {
-        if (playlist == null) return;
-
-        this.collaborative = playlist.getCollaborative();
-        this.description = playlist.getDescription();
-        this.href = playlist.getHref();
-        this.id = playlist.getId();
-        this.images = playlist.getImages();
-        this.name = playlist.getName();
-        this.ownerId = playlist.getOwnerId();
-        this.ownerDisplayName = playlist.getOwnerDisplayName();
-        this.isPublic = playlist.getIsPublic();
-        this.tracks = playlist.getTracks() != null ? 
-            playlist.getTracks().stream().map(TrackDTO::new).toList() : List.of();
-        this.uri = playlist.getUri();
     }
 
     public Boolean getCollaborative() {
@@ -68,10 +51,10 @@ public class PlaylistDTO {
         this.id = id;
     }
 
-    public List<SpotifyImage> getImages() {
+    public List<SpotifyImageDTO> getImages() {
         return images;
     }
-    public void setImages(List<SpotifyImage> images) {
+    public void setImages(List<SpotifyImageDTO> images) {
         this.images = images;
     }
 

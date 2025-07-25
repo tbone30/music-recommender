@@ -3,7 +3,13 @@ package com.musicrecommender.backend.dto;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
+
 import com.musicrecommender.backend.entity.Track;
+import com.musicrecommender.backend.entity.Album;
+import com.musicrecommender.backend.service.AlbumService;
+
+import reactor.core.publisher.Mono;
 
 public class TrackDTO {
     private String id;
@@ -15,24 +21,10 @@ public class TrackDTO {
     private String href;
     private String uri;
     private String albumId;
+    private List<SpotifyImageDTO> albumImages;
+    private String albumName;
 
     public TrackDTO() {}
-    
-    public TrackDTO(Track track) {
-        if (track == null) return;
-
-        this.id = track.getId();
-        this.name = track.getName();
-        this.href = track.getHref();
-        this.uri = track.getUri();
-        this.duration = track.getDuration();
-        this.explicit = track.isExplicit();
-        this.popularity = track.getPopularity();
-        this.artists = track.getArtists().stream()
-            .map(ArtistDTO::new)
-            .collect(Collectors.toList());
-        this.albumId = track.getAlbumId();
-    }
 
     public int getDurationMs() {
         return duration;
@@ -104,5 +96,21 @@ public class TrackDTO {
 
     public void setAlbumId(String albumId) {
         this.albumId = albumId;
+    }
+
+    public List<SpotifyImageDTO> getAlbumImages() {
+        return albumImages;
+    }
+
+    public void setAlbumImages(List<SpotifyImageDTO> albumImages) {
+        this.albumImages = albumImages;
+    }
+
+    public String getAlbumName() {
+        return albumName;
+    }
+
+    public void setAlbumName(String albumName) {
+        this.albumName = albumName;
     }
 }
