@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import ApiService from '../services/api';
-import { PlaylistListPageDTO, SimplifiedPlaylistDTO } from './playlistTypes';
+import { PlaylistListPageDTO, SimplifiedPlaylistDTO } from '../types/dto';
 
 
 const PlaylistsPage: React.FC = () => {
@@ -41,7 +42,12 @@ const PlaylistsPage: React.FC = () => {
       )}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {playlists.map((playlist) => (
-          <div key={playlist.id} className="bg-gray-800 rounded-lg p-4 flex flex-col items-center">
+          <Link
+            key={playlist.id}
+            to={`/playlists/${playlist.id}`}
+            className="bg-gray-800 rounded-lg p-4 flex flex-col items-center hover:bg-gray-700 transition-colors duration-200 cursor-pointer"
+            style={{ textDecoration: 'none' }}
+          >
             {playlist.images && playlist.images[0] && (
               <img src={playlist.images[0].url} alt={playlist.name} className="w-32 h-32 object-cover rounded mb-4" />
             )}
@@ -49,7 +55,7 @@ const PlaylistsPage: React.FC = () => {
             {playlist.description && (
               <p className="text-gray-400 text-sm text-center">{playlist.description}</p>
             )}
-          </div>
+          </Link>
         ))}
       </div>
     </div>

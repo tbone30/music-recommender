@@ -53,6 +53,10 @@ class ApiService {
   }
 
   // Spotify-authenticated endpoints
+  async getPlaylist(playlistId: string): Promise<any> {
+    return this.spotifyAuth.getPlaylist(playlistId);
+  }
+
   async getUserSpotifyProfile(): Promise<any> {
     return this.spotifyAuth.getUserProfile();
   }

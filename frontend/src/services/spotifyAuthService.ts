@@ -117,6 +117,14 @@ class SpotifyAuthService {
     });
   }
 
+  async getPlaylist(playlistId: string): Promise<any> {
+    const response = await this.makeAuthenticatedRequest(`/playlists/${playlistId}`);
+    if (!response.ok) {
+      throw new Error('Failed to get playlist');
+    }
+    return response.json();
+  }
+
   // Get user profile
   async getUserProfile(): Promise<SpotifyUser> {
     const response = await this.makeAuthenticatedRequest('/me');
