@@ -1,19 +1,17 @@
 spring:
   application:
     name: spotify-discovery-backend
-  
+
   datasource:
-    url: jdbc:sqlite:./data/spotify_discovery.db
-    driver-class-name: org.sqlite.JDBC
-    username: ""
-    password: ""
-    hikari:
-      connection-test-query: SELECT 1
-  
+    url: jdbc:h2:file:./data/musicdb;
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
   jpa:
     hibernate:
       ddl-auto: update
-    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    database-platform: org.hibernate.dialect.H2Dialect
     show-sql: false
     properties:
       hibernate:
