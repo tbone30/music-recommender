@@ -19,7 +19,12 @@ public class Playlist {
     private String ownerDisplayName;
     private Boolean isPublic;
     // Could change these to PlaylistTrack at a later point if I need metadata on track added
-    @OneToMany
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "playlist_tracks",
+        joinColumns = @JoinColumn(name = "playlist_id"),
+        inverseJoinColumns = @JoinColumn(name = "tracks_id")
+    )
     private List<Track> tracks;
     private String uri;
 

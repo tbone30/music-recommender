@@ -44,7 +44,6 @@ public class PlaylistService {
 
     private Mono<Playlist> createPlaylistFromJSON(Map<String, Object> playlistData) {
         String playlistId = (String) playlistData.get("id");
-
         Object tracksObject = playlistData.get("tracks");
         Map<String, Object> tracksMap = (Map<String, Object>) tracksObject;
         String nextUrl = (String) tracksMap.get("next");
@@ -53,10 +52,11 @@ public class PlaylistService {
         if (itemsObject instanceof List) {
             currentTrackCount = ((List<?>) itemsObject).size();
         }
-        
+
+        Mono<Map<String, Object>> playlistDataMono;
         if (nextUrl != null) {
             // Has more pages - fetch all tracks
-            return spotifyIntegrationService.fetchAllTracksForPlaylist(tracksMap)
+            playlistDataMono = spotifyIntegrationService.fetchAllTracksForPlaylist(tracksMap)
                 .map(allTracks -> {
                     // Replace tracks in playlistData with complete set
                     Map<String, Object> completeTracksObject = Map.of(
@@ -65,20 +65,35 @@ public class PlaylistService {
                     );
                     playlistData.put("tracks", completeTracksObject);
                     return playlistData;
-                })
-                .flatMap(completePlaylistData -> {
-                    return playlistFactory.createPlaylistFromJSON(completePlaylistData);
-                })
-                .flatMap(playlist -> {
-                    return Mono.fromCallable(() -> playlistRepository.save(playlist));
                 });
+        } else {
+            playlistDataMono = Mono.just(playlistData);
         }
-        
-        // Only one page of tracks or no tracks
-        return playlistFactory.createPlaylistFromJSON(playlistData)
-            .flatMap(playlist -> {
-                return Mono.fromCallable(() -> playlistRepository.save(playlist));
-            });
+
+        return playlistDataMono
+            .flatMap(finalPlaylistData ->
+                playlistFactory.createPlaylistFromJSON(finalPlaylistData)
+            )
+            .flatMap(newPlaylist ->
+                Mono.fromCallable(() -> {
+                    // Try to find existing playlist
+                    var existingOpt = playlistRepository.findById(playlistId);
+                    if (existingOpt.isPresent()) {
+                        Playlist existing = existingOpt.get();
+                        existing.setCollaborative(newPlaylist.getCollaborative());
+                        existing.setDescription(newPlaylist.getDescription());
+                        existing.setHref(newPlaylist.getHref());
+                        existing.setImages(newPlaylist.getImages());
+                        existing.setName(newPlaylist.getName());
+                        existing.setOwnerDisplayName(newPlaylist.getOwnerDisplayName());
+                        existing.getTracks().clear();
+                        existing.getTracks().addAll(newPlaylist.getTracks());
+                        return playlistRepository.save(existing);
+                    } else {
+                        return playlistRepository.save(newPlaylist);
+                    }
+                })
+            );
     }
 
     public Mono<Playlist> createPlaylistFromJSONSimple(Map<String, Object> playlistData) {
