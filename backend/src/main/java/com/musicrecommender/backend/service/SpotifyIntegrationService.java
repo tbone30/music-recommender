@@ -189,6 +189,15 @@ public class SpotifyIntegrationService {
                 .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {}));
     }
 
+    // Overloaded method to get playlist using a user's access token
+    public Mono<Map<String, Object>> getPlaylist(String playlistId, String accessToken) {
+        return spotifyWebClient.get()
+            .uri("/playlists/{id}", playlistId)
+            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+            .retrieve()
+            .bodyToMono(new ParameterizedTypeReference<Map<String, Object>>() {});
+    }
+
     public Mono<List<Map<String, Object>>> fetchAllTracksForPlaylist(Map<String, Object> initialTracks) {
         return fetchAllPagesFromUrl((String) initialTracks.get("next"), (List<Map<String, Object>>) initialTracks.get("items"));
     }

@@ -27,7 +27,8 @@ public class SpotifyAuthService {
                 "&client_id=" + spotifyProperties.getClientId() +
                 "&scope=" + scopes.replace(" ", "%20") +
                 "&redirect_uri=" + spotifyProperties.getRedirectUri() +
-                "&state=" + state;
+                "&state=" + state +
+                "&show_dialog=true";
     }
     
     public SpotifyTokenResponse exchangeCodeForToken(String code) {

@@ -23,12 +23,24 @@ public class PlaylistController {
     private static final Logger logger = LoggerFactory.getLogger(PlaylistController.class);
 
     @GetMapping("/{id}")
-    public Mono<PlaylistDTO> getPlaylist(@PathVariable String id) {
-        return playlistService.getPlaylist(id)
+    public Mono<PlaylistDTO> getPlaylist(
+            @PathVariable String id,
+            @RequestHeader(value = "Authorization", required = false) String authorizationHeader) {
+        String accessToken = null;
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            accessToken = authorizationHeader.substring(7);
+        }
+        Mono<Playlist> playlistMono;
+        if (accessToken != null && !accessToken.isEmpty()) {
+            playlistMono = playlistService.getPlaylist(id, accessToken);
+        } else {
+            playlistMono = playlistService.getPlaylist(id);
+        }
+        return playlistMono
             .map(playlist -> new PlaylistDTO(playlist))
             .switchIfEmpty(Mono.fromSupplier(() -> {
-                logger.error("Playlist with ID {} not found", id);
-                return new PlaylistDTO(); // Return an empty PlaylistDTO
+                logger.error("Playlist with ID {} not found or not accessible", id);
+                return new PlaylistDTO();
             }));
     }
 }

@@ -38,6 +38,13 @@ public class PlaylistService {
         return result;
     }
 
+    // Overloaded method to get playlist with access token (authenticated user)
+    public Mono<Playlist> getPlaylist(String id, String accessToken) {
+        Mono<Playlist> result = spotifyIntegrationService.getPlaylist(id, accessToken)
+                .flatMap(playlistData -> createPlaylistFromJSON(playlistData));
+        return result;
+    }
+
     public Mono<Playlist> savePlaylist(Playlist playlist) {
         return Mono.fromCallable(() -> playlistRepository.save(playlist));
     }
