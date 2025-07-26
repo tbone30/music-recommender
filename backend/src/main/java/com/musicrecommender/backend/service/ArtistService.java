@@ -14,6 +14,8 @@ import reactor.core.publisher.Flux;
 import com.musicrecommender.backend.entity.Artist;
 import com.musicrecommender.backend.entity.Album;
 import com.musicrecommender.backend.entity.Track;
+import com.musicrecommender.backend.entity.simplified.SimplifiedArtist;
+import com.musicrecommender.backend.entity.simplified.SimplifiedAlbum;
 import com.musicrecommender.backend.repository.ArtistRepository;
 import com.musicrecommender.backend.factory.ArtistFactory;
 
@@ -53,23 +55,23 @@ public class ArtistService {
         return Mono.fromCallable(() -> artistRepository.save(artist));
     }
 
-    public Mono<List<Album>> getArtistAlbums(String artistId) {
+    public Mono<List<SimplifiedAlbum>> getArtistAlbums(String artistId) {
         return spotifyIntegrationService.getArtistAlbums(artistId)
             .flatMap(albums -> {
                 if((String) albums.get("next") != null) {
                     // If there are more pages, fetch all albums
                     return spotifyIntegrationService.fetchAllAlbumsForArtist(albums)
-                        .flatMap(allAlbums -> albumService.createAlbumListFromJSONSimple((List<Map<String, Object>>) allAlbums));
+                        .flatMap(allAlbums -> albumService.createSimplifiedAlbumListFromJSON((List<Map<String, Object>>) allAlbums));
                 } else {
                     // No more pages, return the current list
-                    return albumService.createAlbumListFromJSONSimple((List<Map<String, Object>>) albums.get("items"));
+                    return albumService.createSimplifiedAlbumListFromJSON((List<Map<String, Object>>) albums.get("items"));
                 }
             });
     }
 
     public Mono<List<Track>> getArtistTopTracks(String artistId) {
         return spotifyIntegrationService.getArtistTopTracks(artistId)
-            .flatMap(tracks -> trackService.createTrackListFromJSON(tracks));
+            .flatMap(tracks -> trackService.createTrackListFromJSON((List<Map<String, Object>>) tracks.get("tracks")));
     }
 
     public Mono<Artist> createArtistFromJSON(Map<String, Object> artistData) {
@@ -110,5 +112,15 @@ public class ArtistService {
             .toList();
         String idsCommaSeparated = String.join(",", ids);
         return getSeveralArtists(idsCommaSeparated);
+    }
+
+    public Mono<SimplifiedArtist> createSimplifiedArtistFromJSON(Map<String, Object> artistData) {
+        return artistFactory.createSimplifiedArtistFromJSON(artistData);
+    }
+
+    public Mono<List<SimplifiedArtist>> createSimplifiedArtistListFromJSON(List<Map<String, Object>> artistsData) {
+        return Flux.fromIterable(artistsData)
+            .flatMap(this::createSimplifiedArtistFromJSON)
+            .collectList();
     }
 }

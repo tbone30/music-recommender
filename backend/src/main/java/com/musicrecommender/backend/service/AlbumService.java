@@ -17,6 +17,7 @@ import reactor.core.publisher.Flux;
 
 import com.musicrecommender.backend.entity.Album;
 import com.musicrecommender.backend.entity.Track;
+import com.musicrecommender.backend.entity.simplified.SimplifiedAlbum;
 import com.musicrecommender.backend.repository.AlbumRepository;
 import com.musicrecommender.backend.factory.AlbumFactory;
 
@@ -133,5 +134,15 @@ public class AlbumService {
             .toList();
         String idsCommaSeparated = String.join(",", ids);
         return getSeveralAlbums(idsCommaSeparated);
+    }
+
+    public Mono<SimplifiedAlbum> createSimplifiedAlbumFromJSON(Map<String, Object> albumData) {
+        return albumFactory.createSimplifiedAlbumFromJSON(albumData);
+    }
+
+    public Mono<List<SimplifiedAlbum>> createSimplifiedAlbumListFromJSON(List<Map<String, Object>> albumsData) {
+        return Flux.fromIterable(albumsData)
+            .flatMap(this::createSimplifiedAlbumFromJSON)
+            .collectList();
     }
 }

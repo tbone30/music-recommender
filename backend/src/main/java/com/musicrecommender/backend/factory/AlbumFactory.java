@@ -11,6 +11,7 @@ import com.musicrecommender.backend.entity.Artist;
 import com.musicrecommender.backend.entity.Track;
 import com.musicrecommender.backend.entity.Album;
 import com.musicrecommender.backend.entity.SpotifyImage;
+import com.musicrecommender.backend.entity.simplified.SimplifiedAlbum;
 import com.musicrecommender.backend.service.ArtistService;
 import com.musicrecommender.backend.service.TrackService;
 
@@ -104,5 +105,29 @@ public class AlbumFactory {
                 album.setTracks(tuple.getT2());  // Set tracks with resolved artists
                 return album;
             });
+    }
+
+    public Mono<SimplifiedAlbum> createSimplifiedAlbumFromJSON(Map<String, Object> albumData) {
+        SimplifiedAlbum simplifiedAlbum = new SimplifiedAlbum();
+        simplifiedAlbum.setId((String) albumData.get("id"));
+        simplifiedAlbum.setName((String) albumData.get("name"));
+        simplifiedAlbum.setUri((String) albumData.get("uri"));
+        simplifiedAlbum.setHref((String) albumData.get("href"));
+        simplifiedAlbum.setReleaseDate((String) albumData.get("release_date"));
+        simplifiedAlbum.setReleaseDatePrecision((String) albumData.get("release_date_precision"));
+        simplifiedAlbum.setTotalTracks((Integer) albumData.get("total_tracks"));
+
+        List<Map<String, Object>> artistsData = (List<Map<String, Object>>) albumData.get("artists");
+        if (artistsData != null) {
+            // artistService.createSimplifiedArtistListFromJSON returns Mono<List<SimplifiedArtist>>
+            return artistService.createSimplifiedArtistListFromJSON(artistsData)
+                .map(artists -> {
+                    simplifiedAlbum.setArtists(artists);
+                    return simplifiedAlbum;
+                });
+        } else {
+            simplifiedAlbum.setArtists(List.of());
+            return Mono.just(simplifiedAlbum);
+        }
     }
 }

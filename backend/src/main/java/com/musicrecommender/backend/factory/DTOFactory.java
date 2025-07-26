@@ -2,6 +2,7 @@ package com.musicrecommender.backend.factory;
 
 import java.util.stream.Collectors;
 import java.util.List;
+import java.util.Map;
 
 import reactor.core.publisher.Mono;
 
@@ -14,10 +15,9 @@ import com.musicrecommender.backend.service.TrackService;
 import com.musicrecommender.backend.service.PlaylistService;
 import com.musicrecommender.backend.service.SpotifyIntegrationService;
 import com.musicrecommender.backend.dto.*;
-import com.musicrecommender.backend.entity.Album;
-import com.musicrecommender.backend.entity.Artist;
-import com.musicrecommender.backend.entity.Playlist;
-import com.musicrecommender.backend.entity.Track;
+import com.musicrecommender.backend.dto.simplified.*;
+import com.musicrecommender.backend.entity.*;
+import com.musicrecommender.backend.entity.simplified.*;
 
 @Component
 public class DTOFactory {
@@ -227,5 +227,102 @@ public class DTOFactory {
             playlistDTO.setUri(playlist.getUri());
             return Mono.just(playlistDTO);
         }
+    }
+
+    public Mono<SimplifiedAlbumDTO> createSimplifiedAlbumDTO(SimplifiedAlbum simplifiedAlbum) {
+        if (simplifiedAlbum == null) return Mono.empty();
+
+        SimplifiedAlbumDTO simplifiedAlbumDTO = new SimplifiedAlbumDTO();
+        simplifiedAlbumDTO.setAlbumType(simplifiedAlbum.getAlbumType());
+        simplifiedAlbumDTO.setTotalTracks(simplifiedAlbum.getTotalTracks());
+        simplifiedAlbumDTO.setId(simplifiedAlbum.getId());
+        simplifiedAlbumDTO.setName(simplifiedAlbum.getName());
+        simplifiedAlbumDTO.setHref(simplifiedAlbum.getHref());
+        simplifiedAlbumDTO.setReleaseDate(simplifiedAlbum.getReleaseDate());
+        simplifiedAlbumDTO.setReleaseDatePrecision(simplifiedAlbum.getReleaseDatePrecision());
+        simplifiedAlbumDTO.setUri(simplifiedAlbum.getUri());
+
+        if (simplifiedAlbum.getImages() != null) {
+            simplifiedAlbumDTO.setImages(simplifiedAlbum.getImages().stream()
+                .map(SpotifyImageDTO::new)
+                .collect(Collectors.toList()));
+        }
+
+        if (simplifiedAlbum.getArtists() != null) {
+            // Await all Mono<SimplifiedArtistDTO> and collect as List<SimplifiedArtistDTO>
+            return reactor.core.publisher.Flux.fromIterable(simplifiedAlbum.getArtists())
+                .flatMap(this::createSimplifiedArtistDTO)
+                .collectList()
+                .map(artistDTOs -> {
+                    simplifiedAlbumDTO.setArtists(artistDTOs);
+                    return simplifiedAlbumDTO;
+                });
+        } else {
+            simplifiedAlbumDTO.setArtists(List.of());
+            return Mono.just(simplifiedAlbumDTO);
+        }
+    }
+
+    public Mono<SimplifiedAlbumDTO> createSimplifiedAlbumDTO(Map<String, Object> albumData) {
+        if (albumData == null) return Mono.empty();
+
+        SimplifiedAlbumDTO simplifiedAlbumDTO = new SimplifiedAlbumDTO();
+        simplifiedAlbumDTO.setId((String) albumData.get("id"));
+        simplifiedAlbumDTO.setName((String) albumData.get("name"));
+        simplifiedAlbumDTO.setTotalTracks((Integer) albumData.get("total_tracks"));
+        simplifiedAlbumDTO.setHref((String) albumData.get("href"));
+        simplifiedAlbumDTO.setReleaseDate((String) albumData.get("release_date"));
+        simplifiedAlbumDTO.setReleaseDatePrecision((String) albumData.get("release_date_precision"));
+        simplifiedAlbumDTO.setUri((String) albumData.get("uri"));
+
+        List<Map<String, Object>> imagesData = (List<Map<String, Object>>) albumData.get("images");
+        if (imagesData != null) {
+            simplifiedAlbumDTO.setImages(imagesData.stream()
+                .map(imgMap -> {
+                    SpotifyImageDTO dto = new SpotifyImageDTO();
+                    dto.setHeight(imgMap.get("height") != null ? ((Number) imgMap.get("height")).intValue() : null);
+                    dto.setWidth(imgMap.get("width") != null ? ((Number) imgMap.get("width")).intValue() : null);
+                    dto.setUrl((String) imgMap.get("url"));
+                    return dto;
+                })
+                .collect(Collectors.toList()));
+        }
+
+        List<Map<String, Object>> artistsData = (List<Map<String, Object>>) albumData.get("artists");
+        if (artistsData != null) {
+            return reactor.core.publisher.Flux.fromIterable(artistsData)
+                .flatMap(this::createSimplifiedArtistDTO)
+                .collectList()
+                .map(artistDTOs -> {
+                    simplifiedAlbumDTO.setArtists(artistDTOs);
+                    return simplifiedAlbumDTO;
+                });
+        }
+
+        return Mono.just(simplifiedAlbumDTO);
+    }
+
+    public Mono<SimplifiedArtistDTO> createSimplifiedArtistDTO(SimplifiedArtist artist) {
+        if (artist == null) return Mono.empty();
+
+        SimplifiedArtistDTO simplifiedArtistDTO = new SimplifiedArtistDTO();
+        simplifiedArtistDTO.setId(artist.getId());
+        simplifiedArtistDTO.setName(artist.getName());
+        simplifiedArtistDTO.setHref(artist.getHref());
+        simplifiedArtistDTO.setUri(artist.getUri());
+
+        return Mono.just(simplifiedArtistDTO);
+    }
+
+    public Mono<SimplifiedArtistDTO> createSimplifiedArtistDTO(Map<String, Object> artistData) {
+        if (artistData == null) return Mono.empty();
+
+        SimplifiedArtistDTO simplifiedArtistDTO = new SimplifiedArtistDTO();
+        simplifiedArtistDTO.setId((String) artistData.get("id"));
+        simplifiedArtistDTO.setName((String) artistData.get("name"));
+        simplifiedArtistDTO.setHref((String) artistData.get("href"));
+        simplifiedArtistDTO.setUri((String) artistData.get("uri"));
+
+        return Mono.just(simplifiedArtistDTO);
     }
 }
