@@ -36,7 +36,7 @@ export interface TrackDTO {
   href: string;
   uri: string;
   albumId: string;
-  images: { url: string }[];
+  albumImages: { url: string }[];
   albumName: string;
 }
 
@@ -51,5 +51,20 @@ export interface PlaylistDTO {
   ownerDisplayName: string;
   isPublic: boolean;
   tracks: TrackDTO[];
+  uri: string;
+}
+
+export interface AlbumDTO {
+  id: string;
+  name: string;
+  totalTracks: number;
+  artists: ArtistDTO[];
+  tracks: TrackDTO[];
+  popularity: number;
+  href: string;
+  releaseDate: string;
+  releaseDatePrecision: string;
+  images: { url: string }[];
+  albumType: 'album' | 'single' | 'compilation';
   uri: string;
 }

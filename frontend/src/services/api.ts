@@ -75,17 +75,17 @@ class ApiService {
 
   // Public Spotify endpoints (no auth required)
   async getPublicTrack(trackId: string): Promise<any> {
-    const response = await fetch(`${this.baseURL}/spotify/public/tracks/${trackId}`);
+    const response = await fetch(`${this.baseURL}/tracks/${trackId}`);
     return response.json();
   }
 
   async getPublicArtist(artistId: string): Promise<any> {
-    const response = await fetch(`${this.baseURL}/spotify/public/artists/${artistId}`);
+    const response = await fetch(`${this.baseURL}/artists/${artistId}`);
     return response.json();
   }
 
   async getPublicAlbum(albumId: string): Promise<any> {
-    const response = await fetch(`${this.baseURL}/spotify/public/albums/${albumId}`);
+    const response = await fetch(`${this.baseURL}/albums/${albumId}`);
     return response.json();
   }
 

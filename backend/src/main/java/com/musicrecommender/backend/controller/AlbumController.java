@@ -36,13 +36,12 @@ public class AlbumController {
     private DTOFactory dtoFactory;
 
     @GetMapping("/{id}")
-    public Mono<ResponseEntity<AlbumDTO>> getAlbum(@PathVariable String id) {
+    public Mono<AlbumDTO> getAlbum(@PathVariable String id) {
         return albumService.getAlbum(id)
-            .flatMap(album -> dtoFactory.createAlbumDTO(album)
-                .map(albumDTO -> ResponseEntity.ok(albumDTO)))
+            .flatMap(album -> dtoFactory.createAlbumDTO(album))
             .switchIfEmpty(Mono.fromSupplier(() -> {
                 logger.error("Album with ID {} not found", id);
-                return ResponseEntity.notFound().<AlbumDTO>build();
+                return null;
             }));
     }
 

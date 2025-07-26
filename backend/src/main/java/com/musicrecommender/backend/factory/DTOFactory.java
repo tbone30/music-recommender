@@ -115,6 +115,7 @@ public class DTOFactory {
         trackDTO.setDurationMs(track.getDuration());
         trackDTO.setExplicit(track.isExplicit());
         trackDTO.setPopularity(track.getPopularity());
+        trackDTO.setAlbumId(track.getAlbumId());
 
         Mono<List<ArtistDTO>> artistsMono;
         if (track.getArtists() != null) {
@@ -130,13 +131,11 @@ public class DTOFactory {
             return albumService.getAlbum(track.getAlbumId())
                 .map(album -> {
                     if (album != null) {
-                        trackDTO.setAlbumId(album.getId());
                         trackDTO.setAlbumImages(album.getImages().stream()
                             .map(SpotifyImageDTO::new)
                             .collect(Collectors.toList()));
                         trackDTO.setAlbumName(album.getName());
                     } else {
-                        trackDTO.setAlbumId(null);
                         trackDTO.setAlbumImages(List.of());
                         trackDTO.setAlbumName(null);
                     }
@@ -156,6 +155,7 @@ public class DTOFactory {
         trackDTO.setDurationMs(track.getDuration());
         trackDTO.setExplicit(track.isExplicit());
         trackDTO.setPopularity(track.getPopularity());
+        trackDTO.setAlbumId(track.getAlbumId());
 
         Mono<List<ArtistDTO>> artistsMono;
         if (track.getArtists() != null) {

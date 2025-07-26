@@ -2,8 +2,9 @@ package com.musicrecommender.backend.controller;
 
 import com.musicrecommender.backend.entity.Track;
 import com.musicrecommender.backend.service.TrackService;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.musicrecommender.backend.dto.TrackDTO;  
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.CrossOrigin;

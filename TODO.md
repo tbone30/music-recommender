@@ -1,5 +1,3 @@
-album id null for tracks in db
+further reduce calls to spotify api 429 chance, especially for long playlists- USE MORE SIMPLEIFIED TYPES TO REDUCE CALLS
 
 add more endpoints for spotify
-
-spotify oauth

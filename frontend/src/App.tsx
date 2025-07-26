@@ -13,6 +13,7 @@ import ProtectedRoute from './components/Auth/ProtectedRoute';
 import LoadingSpinner from './components/UI/LoadingSpinner';
 
 // Pages
+import AlbumPage from './pages/AlbumPage';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/Auth/LoginPage';
 import CallbackPage from './pages/Auth/CallbackPage';
@@ -130,6 +131,16 @@ function App(): React.JSX.Element {
                     <ProtectedRoute>
                       <Layout>
                         <PlaylistDetailPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/albums/:id"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <AlbumPage />
                       </Layout>
                     </ProtectedRoute>
                   }
