@@ -4,18 +4,6 @@ import { Link, useParams } from 'react-router-dom';
 import ApiService from '../services/api';
 import { AlbumDTO, TrackDTO } from '../types/dto';
 
-interface Album {
-  id: string;
-  name: string;
-  description?: string;
-  images?: { url: string }[];
-  artists?: { id: string; name: string }[];
-  tracks: TrackDTO[];
-  release_date?: string;
-  label?: string;
-  total_tracks?: number;
-}
-
 const AlbumPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [album, setAlbum] = useState<AlbumDTO | null>(null);

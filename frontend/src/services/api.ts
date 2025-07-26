@@ -84,6 +84,16 @@ class ApiService {
     return response.json();
   }
 
+  async getPublicArtistAlbums(artistId: string): Promise<any> {
+    const response = await fetch(`${this.baseURL}/artists/${artistId}/albums`);
+    return response.json();
+  }
+
+  async getPublicArtistTopTracks(artistId: string): Promise<any> {
+    const response = await fetch(`${this.baseURL}/artists/${artistId}/top-tracks`);
+    return response.json();
+  }
+
   async getPublicAlbum(albumId: string): Promise<any> {
     const response = await fetch(`${this.baseURL}/albums/${albumId}`);
     return response.json();

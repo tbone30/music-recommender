@@ -14,6 +14,7 @@ import LoadingSpinner from './components/UI/LoadingSpinner';
 
 // Pages
 import AlbumPage from './pages/AlbumPage';
+import ArtistPage from './pages/ArtistPage';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/Auth/LoginPage';
 import CallbackPage from './pages/Auth/CallbackPage';
@@ -141,6 +142,16 @@ function App(): React.JSX.Element {
                     <ProtectedRoute>
                       <Layout>
                         <AlbumPage />
+                      </Layout>
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/artists/:id"
+                  element={
+                    <ProtectedRoute>
+                      <Layout>
+                        <ArtistPage />
                       </Layout>
                     </ProtectedRoute>
                   }

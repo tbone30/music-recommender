@@ -68,3 +68,23 @@ export interface AlbumDTO {
   albumType: 'album' | 'single' | 'compilation';
   uri: string;
 }
+
+export interface SimplifiedAlbumDTO {
+  albumType: 'album' | 'single' | 'compilation';
+  totalTracks: number;
+  href: string;
+  id: string;
+  images: { url: string }[];
+  name: string;
+  releaseDate: string;
+  releaseDatePrecision: string;
+  uri: string;
+  artists: SimplifiedArtistDTO[];
+}
+
+export interface SimplifiedArtistDTO {
+  href: string;
+  id: string;
+  name: string;
+  uri: string;
+}

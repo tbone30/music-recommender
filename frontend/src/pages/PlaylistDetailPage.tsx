@@ -106,7 +106,11 @@ const PlaylistDetailPage: React.FC = () => {
                     {track.explicit && <span className="ml-2 text-xs text-red-400 bg-[#282828] px-2 py-0.5 rounded-full">Explicit</span>}
                   </div>
                   <div className="flex flex-wrap gap-1 md:gap-2 text-xs md:text-sm text-gray-400 mt-1 items-center">
-                    <span>Artists: {track.artists.map(a => a.name).join(', ')}</span>
+                    <span>Artists: {track.artists.map((a, i) => (
+                      <span key={a.id}>
+                        <Link to={`/artists/${a.id}`} className="hover:underline">{a.name}</Link>{i < track.artists.length - 1 ? ', ' : ''}
+                      </span>
+                    ))}</span>
                   </div>
                   <div className="flex text-xs md:text-sm text-gray-400 items-center mt-0.5">
                     <span className="truncate max-w-[10rem] md:max-w-xs">Album: 
