@@ -8,6 +8,7 @@ target/
 .env
 
 ### Database Files ###
+data/
 *.db
 
 ### STS ###

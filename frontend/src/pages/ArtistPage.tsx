@@ -105,9 +105,9 @@ const ArtistPage: React.FC = () => {
                     <div className="w-12 h-12 bg-[#282828] rounded mr-3 flex-shrink-0" />
                   )}
                   <div className="flex-1 min-w-0">
-                    <span className="text-white font-semibold text-base truncate max-w-xs">{album.name}</span>
+                    <span className="text-white font-semibold text-base block truncate" style={{maxWidth: '100%'}}>{album.name}</span>
                     {album.releaseDate && (
-                      <span className="ml-2 text-xs text-gray-400">({album.releaseDate})</span>
+                      <span className="block text-xs text-gray-400 mt-1">{album.releaseDate}</span>
                     )}
                   </div>
                 </li>
@@ -140,9 +140,9 @@ const ArtistPage: React.FC = () => {
                     <div className="w-10 h-10 bg-[#282828] rounded mr-3 flex-shrink-0" />
                   )}
                   <div className="flex-1 min-w-0">
-                    <span className="text-white font-semibold text-base truncate max-w-xs">{track.name}</span>
-                    {track.explicit && <span className="ml-2 text-xs text-red-400 bg-[#282828] px-2 py-0.5 rounded-full">Explicit</span>}
+                    <span className="text-white font-semibold text-base block truncate" style={{maxWidth: '100%'}}>{track.name}</span>
                     <div className="flex flex-wrap gap-1 text-xs text-gray-400 mt-1 items-center">
+                      {track.explicit && <span className="text-xs text-red-400 bg-[#282828] px-2 py-0.5 rounded-full mr-2">Explicit</span>}
                       <span>Album: {track.albumName}</span>
                     </div>
                   </div>
